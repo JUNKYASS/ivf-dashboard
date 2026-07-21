@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+backend/storage/output/*
+!backend/storage/output/.gitkeep
+# backend/config/settings.json
+*.log
+.DS_Store

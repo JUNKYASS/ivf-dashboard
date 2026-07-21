@@ -1,0 +1,58 @@
+{
+  "texdesignUrl": "https://texdesign.ru/bitrix/catalog_export/cloth.xml",
+  "thresholds": {
+    "galtex_gt_byaz_220_120": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "galtex_gt_byaz_220_140": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "galtex_gt_byaz_150_120": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "galtex_gt_byaz_150_140": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "galtex_gt_byaz_150_120_solid": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "galtex_gt_byaz_150_140_solid": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "galtex_gt_poplin_220": {
+      "threshold": 400,
+      "remain": 10
+    },
+    "td": {
+      "threshold": 600,
+      "remain": 5
+    },
+    "ad": {
+      "threshold": 600,
+      "remain": 5
+    },
+    "tdl": {
+      "threshold": 350,
+      "remain": 5
+    },
+    "logos": {
+      "threshold": 350,
+      "remain": 10
+    },
+    "tt": {
+      "threshold": 250,
+      "remain": 10
+    }
+  },
+  "mappingFile": {
+    "storedFileName": "mapping.xlsx",
+    "originalFileName": "mapping.xlsx",
+    "uploadedAt": "2026-07-15T22:55:45.878Z"
+  }
+}

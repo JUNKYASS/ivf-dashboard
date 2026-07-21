@@ -1,0 +1,16 @@
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { Layout } from './components/Layout';
+import { ParserPage } from './pages/ParserPage';
+import { StickersPage } from './pages/StickersPage';
+
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Navigate to="/parser" replace />} />
+        <Route path="/parser" element={<ParserPage />} />
+        <Route path="/stickers" element={<StickersPage />} />
+      </Route>
+    </Routes>
+  );
+}
