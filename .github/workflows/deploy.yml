@@ -28,7 +28,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          tags: ghcr.io/junkyass/ivf-dashboard:latest
 
   deploy:
     runs-on: ubuntu-latest
