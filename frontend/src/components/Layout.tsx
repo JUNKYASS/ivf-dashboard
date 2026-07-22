@@ -5,7 +5,7 @@ export function Layout() {
     <div className="layout">
       <header className="app-header">
         <div className="app-header-inner">
-          <span className="app-title">Панель управления / IVANOVOFABRIC</span>
+          <span className="app-title">Панель управления / IVF-DASHBOARD</span>
           <nav className="segmented-nav" aria-label="Разделы">
             <NavLink
               to="/parser"
