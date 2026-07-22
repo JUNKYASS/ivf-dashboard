@@ -29,6 +29,8 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/junkyass/ivf-dashboard:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max # mode=max кэширует все слои, включая финальный образ
 
   deploy:
     runs-on: ubuntu-latest
