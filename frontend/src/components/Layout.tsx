@@ -14,6 +14,12 @@ export function Layout() {
               Парсер остатков
             </NavLink>
             <NavLink
+              to="/orders"
+              className={({ isActive }) => `segmented-link${isActive ? ' active' : ''}`}
+            >
+              Обработка заказов
+            </NavLink>
+            <NavLink
               to="/stickers"
               className={({ isActive }) => `segmented-link${isActive ? ' active' : ''}`}
             >

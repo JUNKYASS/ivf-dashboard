@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ParserPage } from './pages/ParserPage';
+import { OrdersPage } from './pages/OrdersPage';
 import { StickersPage } from './pages/StickersPage';
 
 export default function App() {
@@ -9,6 +10,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Navigate to="/parser" replace />} />
         <Route path="/parser" element={<ParserPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
         <Route path="/stickers" element={<StickersPage />} />
       </Route>
     </Routes>

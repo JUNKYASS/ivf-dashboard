@@ -61,6 +61,43 @@ export type GenerateResponse = {
   };
 };
 
+export type RawOrderLine = {
+  marketplace: 'ozon' | 'wb';
+  postingNumber: string;
+  marketplaceArticle: string;
+  quantity: number;
+};
+
+export type OrderRow = {
+  marketplaceArticle: string;
+  supplierArticle: string | null;
+  quantity: number;
+  postingNumbers: string[];
+};
+
+export type OrderGroup = {
+  key: string;
+  title: string;
+  positionCount: number;
+  totalQuantity: number;
+  rows: OrderRow[];
+  copyMarketplaceArticles: boolean;
+};
+
+export type MarketplaceFetchStatus = {
+  status: 'success' | 'error';
+  message?: string;
+  positionCount?: number;
+};
+
+export type OrdersFetchResponse = {
+  marketplaceStatus: {
+    ozon: MarketplaceFetchStatus;
+    wb: MarketplaceFetchStatus;
+  };
+  groups: OrderGroup[];
+};
+
 export const BACKEND_ROOT = path.resolve(__dirname, '..');
 export const STORAGE_DIR = process.env.STORAGE_DIR ?? path.join(BACKEND_ROOT, 'storage');
 export const CONFIG_PATH = process.env.CONFIG_PATH ?? path.join(BACKEND_ROOT, 'config', 'settings.json');

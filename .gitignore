@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.env.example
 backend/storage/output/*
 !backend/storage/output/.gitkeep
 # backend/config/settings.json

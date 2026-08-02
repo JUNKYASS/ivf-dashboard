@@ -1,4 +1,4 @@
-import type { AppConfig, GenerateResponse } from '../types';
+import type { AppConfig, GenerateResponse, MarketplaceApiPublicConfig, OrdersFetchResponse } from '../types';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
@@ -36,6 +36,24 @@ export const api = {
     request<GenerateResponse>('/api/generate', { method: 'POST', body: formData }),
 
   downloadUrl: (type: 'ozon' | 'wb') => `/api/download/${type}`,
+
+  getMarketplaceApiConfig: () => request<MarketplaceApiPublicConfig>('/api/config/marketplace-api'),
+
+  saveMarketplaceApiConfig: (payload: {
+    ozonClientId?: string;
+    ozonApiKey?: string;
+    wbApiToken?: string;
+  }) =>
+    request<MarketplaceApiPublicConfig>('/api/config/marketplace-api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+
+  fetchOrders: () =>
+    request<OrdersFetchResponse>('/api/marketplace/orders/fetch', {
+      method: 'POST',
+    }),
 };
 
 export function triggerDownload(url: string, filename: string) {

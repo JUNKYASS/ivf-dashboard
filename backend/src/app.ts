@@ -5,6 +5,7 @@ import path from 'path';
 import { createAuthMiddleware, errorHandler } from './middleware/auth';
 import apiRouter from './routes/api';
 import configRouter from './routes/config';
+import marketplaceRouter from './routes/marketplace';
 import { initStorage } from './services/configService';
 
 export function createApp() {
@@ -17,6 +18,7 @@ export function createApp() {
 
   app.use('/api', configRouter);
   app.use('/api', apiRouter);
+  app.use('/api', marketplaceRouter);
 
   const frontendDist = path.resolve(__dirname, '../../frontend/dist');
   if (fs.existsSync(frontendDist)) {

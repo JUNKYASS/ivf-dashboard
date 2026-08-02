@@ -71,3 +71,46 @@ export const FILE_SUPPLIERS = [
   { id: 'logos', name: 'ЛогатексПРО (Logos)', fileKey: 'logos' },
   { id: 'tt', name: 'Традиции Текстиля (TT)', fileKey: 'tt' },
 ] as const;
+
+export type MarketplaceApiPublicConfig = {
+  ozon: {
+    clientIdConfigured: boolean;
+    clientIdMask: string | null;
+    apiKeyConfigured: boolean;
+    apiKeyMask: string | null;
+  };
+  wb: {
+    apiTokenConfigured: boolean;
+    apiTokenMask: string | null;
+  };
+};
+
+export type OrderRow = {
+  marketplaceArticle: string;
+  supplierArticle: string | null;
+  quantity: number;
+  postingNumbers: string[];
+};
+
+export type OrderGroup = {
+  key: string;
+  title: string;
+  positionCount: number;
+  totalQuantity: number;
+  rows: OrderRow[];
+  copyMarketplaceArticles: boolean;
+};
+
+export type MarketplaceFetchStatus = {
+  status: 'success' | 'error';
+  message?: string;
+  positionCount?: number;
+};
+
+export type OrdersFetchResponse = {
+  marketplaceStatus: {
+    ozon: MarketplaceFetchStatus;
+    wb: MarketplaceFetchStatus;
+  };
+  groups: OrderGroup[];
+};
