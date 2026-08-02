@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { OrderGroup, OrderRow } from '../types';
 import { formatOrderRowForCopy, sortRowsForSupplierCopy } from '../utils/fabricMaterial';
+import { copyToClipboard } from '../utils/copyToClipboard';
 import { CollapsibleSection } from './CollapsibleSection';
 
 const POSTING_PREVIEW_LIMIT = 3;
@@ -38,14 +39,14 @@ function PostingNumbers({ numbers }: { numbers: string[] }) {
   );
 }
 
-function copyGroupRows(group: OrderGroup) {
+async function copyGroupRows(group: OrderGroup) {
   const rows = group.copyMarketplaceArticles ? group.rows : sortRowsForSupplierCopy(group.rows);
 
   const text = rows
     .map((row: OrderRow) => formatOrderRowForCopy(row, group.copyMarketplaceArticles))
     .join('\n');
 
-  void navigator.clipboard.writeText(text);
+  await copyToClipboard(text);
 }
 
 type Props = {
