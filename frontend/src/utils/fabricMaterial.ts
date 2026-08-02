@@ -124,16 +124,20 @@ function formatSupplierCopyLine(
   return `${supplierArticle} Кол-во: ${quantity}шт`;
 }
 
+function formatMarketplaceArticleCopyLine(marketplaceArticle: string, quantity: number): string {
+  return `${marketplaceArticle} / ${quantity} шт`;
+}
+
 export function formatOrderRowForCopy(
   row: { marketplaceArticle: string; supplierArticle: string | null; quantity: number },
   copyMarketplaceArticles: boolean,
 ): string {
   if (copyMarketplaceArticles) {
-    return `${row.marketplaceArticle} Кол-во: ${row.quantity}шт`;
+    return formatMarketplaceArticleCopyLine(row.marketplaceArticle, row.quantity);
   }
 
   if (!row.supplierArticle) {
-    return `${row.marketplaceArticle} Кол-во: ${row.quantity}шт`;
+    return formatMarketplaceArticleCopyLine(row.marketplaceArticle, row.quantity);
   }
 
   return formatSupplierCopyLine(row.marketplaceArticle, row.supplierArticle, row.quantity);
