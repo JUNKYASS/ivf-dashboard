@@ -685,6 +685,46 @@ select {
   margin-bottom: 12px;
 }
 
+.orders-copy-btn {
+  display: inline-grid;
+  justify-items: center;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.orders-copy-btn-label {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+
+.orders-copy-btn-label[aria-hidden='true'] {
+  visibility: hidden;
+}
+
+.orders-copy-btn.is-copied {
+  color: var(--system-green);
+  background: color-mix(in srgb, var(--system-green) 10%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--system-green) 35%, var(--separator));
+}
+
+.orders-copy-btn.is-copied:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.orders-copy-btn-success {
+  font-weight: 600;
+}
+
+.orders-copy-btn-success-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.orders-copy-check {
+  flex-shrink: 0;
+}
+
 .orders-table-wrap {
   overflow-x: auto;
 }

@@ -70,10 +70,58 @@ export function sortRowsForSupplierCopy<
       getFabricMaterialSortIndex(b.marketplaceArticle);
     if (byMaterial !== 0) return byMaterial;
 
+    const dimsA = parseMarketplaceArticleDimensions(a.marketplaceArticle);
+    const dimsB = parseMarketplaceArticleDimensions(b.marketplaceArticle);
+
+    const byWidth = (dimsA.widthCm ?? Number.POSITIVE_INFINITY) - (dimsB.widthCm ?? Number.POSITIVE_INFINITY);
+    if (byWidth !== 0) return byWidth;
+
+    const byDensity =
+      (dimsA.densityGr ?? Number.POSITIVE_INFINITY) - (dimsB.densityGr ?? Number.POSITIVE_INFINITY);
+    if (byDensity !== 0) return byDensity;
+
     const articleA = a.supplierArticle ?? a.marketplaceArticle;
     const articleB = b.supplierArticle ?? b.marketplaceArticle;
     return articleA.localeCompare(articleB, 'ru');
   });
+}
+
+export function parseMarketplaceArticleDimensions(marketplaceArticle: string): {
+  materialName: string | null;
+  widthCm: number | null;
+  densityGr: number | null;
+} {
+  const segments = marketplaceArticle.split('-').map((segment) => segment.trim()).filter(Boolean);
+  const materialName = extractFabricMaterialName(marketplaceArticle);
+  const specsRaw = segments[1]?.toUpperCase() ?? '';
+
+  if (!/^\d{6}$/.test(specsRaw)) {
+    return { materialName, widthCm: null, densityGr: null };
+  }
+
+  return {
+    materialName,
+    widthCm: Number.parseInt(specsRaw.slice(0, 3), 10),
+    densityGr: Number.parseInt(specsRaw.slice(3, 6), 10),
+  };
+}
+
+function formatSupplierCopyLine(
+  marketplaceArticle: string,
+  supplierArticle: string,
+  quantity: number,
+): string {
+  const { materialName, widthCm, densityGr } = parseMarketplaceArticleDimensions(marketplaceArticle);
+
+  if (materialName && widthCm && densityGr) {
+    return `${materialName} ${widthCm}см ${densityGr}гр / ${quantity} шт / ${supplierArticle}`;
+  }
+
+  if (materialName) {
+    return `${supplierArticle} (${materialName}) Кол-во: ${quantity}шт`;
+  }
+
+  return `${supplierArticle} Кол-во: ${quantity}шт`;
 }
 
 export function formatOrderRowForCopy(
@@ -88,10 +136,5 @@ export function formatOrderRowForCopy(
     return `${row.marketplaceArticle} Кол-во: ${row.quantity}шт`;
   }
 
-  const materialName = extractFabricMaterialName(row.marketplaceArticle);
-  const article = materialName
-    ? `${row.supplierArticle} (${materialName})`
-    : row.supplierArticle;
-
-  return `${article} Кол-во: ${row.quantity}шт`;
+  return formatSupplierCopyLine(row.marketplaceArticle, row.supplierArticle, row.quantity);
 }

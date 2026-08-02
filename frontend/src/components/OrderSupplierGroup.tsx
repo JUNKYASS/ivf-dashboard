@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { OrderGroup, OrderRow } from '../types';
 import { formatOrderRowForCopy, sortRowsForSupplierCopy } from '../utils/fabricMaterial';
 import { copyToClipboard } from '../utils/copyToClipboard';
@@ -39,6 +39,8 @@ function PostingNumbers({ numbers }: { numbers: string[] }) {
   );
 }
 
+const COPY_SUCCESS_DURATION_MS = 2000;
+
 async function copyGroupRows(group: OrderGroup) {
   const rows = group.copyMarketplaceArticles ? group.rows : sortRowsForSupplierCopy(group.rows);
 
@@ -49,24 +51,77 @@ async function copyGroupRows(group: OrderGroup) {
   await copyToClipboard(text);
 }
 
+function CopySuccessIcon() {
+  return (
+    <svg className="orders-copy-check" width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path
+        d="M3.5 8.5 6.5 11.5 12.5 4.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CopyArticlesButton({ group }: { group: OrderGroup }) {
+  const [copied, setCopied] = useState(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const copyLabel = group.copyMarketplaceArticles
+    ? 'Скопировать артикулы маркетплейса'
+    : 'Скопировать артикулы поставщика';
+
+  useEffect(
+    () => () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    },
+    [],
+  );
+
+  const handleCopy = async () => {
+    if (copied) return;
+
+    await copyGroupRows(group);
+    setCopied(true);
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => setCopied(false), COPY_SUCCESS_DURATION_MS);
+  };
+
+  return (
+    <button
+      type="button"
+      className={`clay-btn clay-btn-secondary orders-copy-btn${copied ? ' is-copied' : ''}`}
+      disabled={copied}
+      onClick={() => void handleCopy()}
+    >
+      <span className="orders-copy-btn-label" aria-hidden={copied}>
+        {copyLabel}
+      </span>
+      <span className="orders-copy-btn-label orders-copy-btn-success" aria-hidden={!copied}>
+        <span className="orders-copy-btn-success-inner">
+          Скопировано
+          <CopySuccessIcon />
+        </span>
+      </span>
+    </button>
+  );
+}
+
 type Props = {
   group: OrderGroup;
 };
 
 export function OrderSupplierGroup({ group }: Props) {
-  const copyLabel = group.copyMarketplaceArticles
-    ? 'Скопировать артикулы маркетплейса'
-    : 'Скопировать артикулы поставщика';
-
   return (
     <CollapsibleSection
       title={`${group.title} (${group.positionCount} поз., ${group.totalQuantity} шт.)`}
       defaultOpen
     >
       <div className="orders-group-actions">
-        <button type="button" className="clay-btn clay-btn-secondary" onClick={() => copyGroupRows(group)}>
-          {copyLabel}
-        </button>
+        <CopyArticlesButton group={group} />
       </div>
 
       <div className="orders-table-wrap">

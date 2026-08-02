@@ -59,12 +59,40 @@ export function getFabricMaterialSortIndex(marketplaceArticle: string): number {
   return index === -1 ? FABRIC_MATERIAL_NAME_SORT_ORDER.length : index;
 }
 
+export function parseMarketplaceArticleDimensions(marketplaceArticle: string): {
+  materialName: string | null;
+  widthCm: number | null;
+  densityGr: number | null;
+} {
+  const segments = marketplaceArticle.split('-').map((segment) => segment.trim()).filter(Boolean);
+  const materialName = extractFabricMaterialName(marketplaceArticle);
+  const specsRaw = segments[1]?.toUpperCase() ?? '';
+
+  if (!/^\d{6}$/.test(specsRaw)) {
+    return { materialName, widthCm: null, densityGr: null };
+  }
+
+  return {
+    materialName,
+    widthCm: Number.parseInt(specsRaw.slice(0, 3), 10),
+    densityGr: Number.parseInt(specsRaw.slice(3, 6), 10),
+  };
+}
+
 export function formatSupplierArticleForCopy(
   marketplaceArticle: string,
   supplierArticle: string,
   quantity: number,
 ): string {
-  const materialName = extractFabricMaterialName(marketplaceArticle);
-  const article = materialName ? `${supplierArticle} (${materialName})` : supplierArticle;
-  return `${article} Кол-во: ${quantity}шт`;
+  const { materialName, widthCm, densityGr } = parseMarketplaceArticleDimensions(marketplaceArticle);
+
+  if (materialName && widthCm && densityGr) {
+    return `${materialName} ${widthCm}см ${densityGr}гр / ${quantity} шт / ${supplierArticle}`;
+  }
+
+  if (materialName) {
+    return `${supplierArticle} (${materialName}) Кол-во: ${quantity}шт`;
+  }
+
+  return `${supplierArticle} Кол-во: ${quantity}шт`;
 }
