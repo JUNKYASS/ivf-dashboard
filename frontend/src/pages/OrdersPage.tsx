@@ -41,15 +41,6 @@ export function OrdersPage() {
     void loadApiConfig().catch((err: Error) => setError(err.message));
   }, [loadApiConfig]);
 
-  const handleSaveApiConfig = async (payload: {
-    ozonClientId?: string;
-    ozonApiKey?: string;
-    wbApiToken?: string;
-  }) => {
-    const data = await api.saveMarketplaceApiConfig(payload);
-    setApiConfig(data);
-  };
-
   const handleFetchOrders = async () => {
     setLoading(true);
     setError(null);
@@ -68,7 +59,7 @@ export function OrdersPage() {
     <div>
       <h1 className="page-title">Обработка заказов</h1>
 
-      <MarketplaceApiBlock config={apiConfig} onSave={handleSaveApiConfig} />
+      <MarketplaceApiBlock config={apiConfig} onConfigChange={setApiConfig} />
 
       <section className="section clay-card orders-actions">
         <button type="button" className="clay-btn" disabled={loading} onClick={() => void handleFetchOrders()}>

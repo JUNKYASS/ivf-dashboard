@@ -72,6 +72,12 @@ export const FILE_SUPPLIERS = [
   { id: 'tt', name: 'Традиции Текстиля (TT)', fileKey: 'tt' },
 ] as const;
 
+export type WbTitlesCacheStatus = {
+  exists: boolean;
+  updatedAt: string | null;
+  count: number;
+};
+
 export type MarketplaceApiPublicConfig = {
   ozon: {
     clientIdConfigured: boolean;
@@ -83,10 +89,12 @@ export type MarketplaceApiPublicConfig = {
     apiTokenConfigured: boolean;
     apiTokenMask: string | null;
   };
+  wbTitlesCache: WbTitlesCacheStatus;
 };
 
 export type OrderRow = {
   marketplaceArticle: string;
+  productTitle: string | null;
   supplierArticle: string | null;
   quantity: number;
   postingNumbers: string[];

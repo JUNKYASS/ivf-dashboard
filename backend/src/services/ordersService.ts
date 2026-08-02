@@ -24,6 +24,7 @@ import { fetchWbOrders } from './wbOrdersService';
 
 type AggregatedLine = {
   marketplaceArticle: string;
+  productTitle: string | null;
   quantity: number;
   postingNumbers: string[];
 };
@@ -97,12 +98,16 @@ function aggregateRawLines(lines: RawOrderLine[]): AggregatedLine[] {
 
     if (existing) {
       existing.quantity += line.quantity;
+      if (!existing.productTitle && line.productTitle) {
+        existing.productTitle = line.productTitle;
+      }
       if (!existing.postingNumbers.includes(line.postingNumber)) {
         existing.postingNumbers.push(line.postingNumber);
       }
     } else {
       map.set(key, {
         marketplaceArticle: line.marketplaceArticle,
+        productTitle: line.productTitle,
         quantity: line.quantity,
         postingNumbers: [line.postingNumber],
       });
@@ -119,6 +124,7 @@ function buildGroups(classifiedLines: ClassifiedLine[]): OrderGroup[] {
     const rows = grouped.get(line.groupKey) ?? [];
     rows.push({
       marketplaceArticle: line.marketplaceArticle,
+      productTitle: line.productTitle,
       supplierArticle: line.supplierArticle,
       quantity: line.quantity,
       postingNumbers: line.postingNumbers,

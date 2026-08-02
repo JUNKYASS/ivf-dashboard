@@ -1,4 +1,4 @@
-import type { AppConfig, GenerateResponse, MarketplaceApiPublicConfig, OrdersFetchResponse } from '../types';
+import type { AppConfig, GenerateResponse, MarketplaceApiPublicConfig, OrdersFetchResponse, WbTitlesCacheStatus } from '../types';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
@@ -52,6 +52,11 @@ export const api = {
 
   fetchOrders: () =>
     request<OrdersFetchResponse>('/api/marketplace/orders/fetch', {
+      method: 'POST',
+    }),
+
+  syncWbTitlesCache: () =>
+    request<WbTitlesCacheStatus>('/api/marketplace/wb-titles/sync', {
       method: 'POST',
     }),
 };

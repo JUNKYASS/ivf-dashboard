@@ -1,14 +1,19 @@
 import { Router } from 'express';
 import {
+  getMarketplaceApiCredentials,
   getMarketplaceApiPublicConfig,
   updateMarketplaceApiConfig,
 } from '../services/marketplaceEnvService';
 import { fetchAndProcessOrders } from '../services/ordersService';
+import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
 
 const router = Router();
 
 router.get('/config/marketplace-api', (_req, res) => {
-  res.json(getMarketplaceApiPublicConfig());
+  res.json({
+    ...getMarketplaceApiPublicConfig(),
+    wbTitlesCache: getWbTitlesCacheStatus(),
+  });
 });
 
 router.post('/config/marketplace-api', (req, res) => {
@@ -19,7 +24,25 @@ router.post('/config/marketplace-api', (req, res) => {
   };
 
   const config = updateMarketplaceApiConfig({ ozonClientId, ozonApiKey, wbApiToken });
-  res.json(config);
+  res.json({
+    ...config,
+    wbTitlesCache: getWbTitlesCacheStatus(),
+  });
+});
+
+router.post('/marketplace/wb-titles/sync', async (_req, res, next) => {
+  try {
+    const credentials = getMarketplaceApiCredentials();
+    if (!credentials.wbApiToken) {
+      res.status(400).json({ error: 'Не настроен WB_API_TOKEN' });
+      return;
+    }
+
+    const status = await syncWbTitlesCache(credentials.wbApiToken);
+    res.json(status);
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post('/marketplace/orders/fetch', async (_req, res, next) => {

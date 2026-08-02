@@ -5,6 +5,8 @@ import type { RawOrderLine } from '../types';
 type OzonProduct = {
   offer_id?: string;
   quantity?: number;
+  product_name?: string;
+  name?: string;
 };
 
 type OzonPosting = {
@@ -68,10 +70,13 @@ export async function fetchOzonOrders(clientId: string, apiKey: string): Promise
         const offerId = product.offer_id?.trim();
         if (!offerId) continue;
 
+        const productTitle = (product.product_name ?? product.name)?.trim() || null;
+
         lines.push({
           marketplace: 'ozon',
           postingNumber: `OZN${postingNumber}`,
           marketplaceArticle: offerId,
+          productTitle,
           quantity: product.quantity && product.quantity > 0 ? product.quantity : 1,
         });
       }

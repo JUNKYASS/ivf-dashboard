@@ -98,3 +98,4 @@ export const UNMAPPED_MARKETPLACE_PREFIXES = ['MT'] as const;
 
 export const OZON_API_BASE_URL = 'https://api-seller.ozon.ru';
 export const WB_API_BASE_URL = 'https://marketplace-api.wildberries.ru';
+export const WB_CONTENT_API_BASE_URL = 'https://content-api.wildberries.ru';
