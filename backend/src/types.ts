@@ -69,11 +69,26 @@ export type RawOrderLine = {
   quantity: number;
 };
 
+export type WarehouseStockFileInfo = {
+  originalFileName: string;
+  uploadedAt: string;
+  entryCount: number;
+};
+
+export type WarehouseStockStatus = {
+  exists: boolean;
+  file: WarehouseStockFileInfo | null;
+};
+
+export type FabricSaleType = 'cut' | 'roll';
+
 export type OrderRow = {
   marketplaceArticle: string;
   productTitle: string | null;
   supplierArticle: string | null;
   quantity: number;
+  warehouseStock: number;
+  fabricSaleType: FabricSaleType | null;
   postingNumbers: string[];
 };
 

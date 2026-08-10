@@ -96,6 +96,22 @@ export type OrderGroupKey = (typeof ORDER_GROUP_KEYS)[number];
 export const BEDDING_ARTICLE_PREFIXES = ['SHF', 'DC', 'PC'] as const;
 export const UNMAPPED_MARKETPLACE_PREFIXES = ['MT'] as const;
 
+export const FABRIC_CUT_MAX_LENGTH_M = 20;
+
+/** Длинные коды первыми, чтобы SST не совпал как ST */
+export const FABRIC_MATERIAL_CODE_ORDER = [
+  'OXF600D',
+  'SPST',
+  'SST',
+  'PST',
+  'VFP',
+  'BZ',
+  'PP',
+  'PK',
+  'ST',
+  'RG',
+] as const;
+
 export const OZON_API_BASE_URL = 'https://api-seller.ozon.ru';
 export const WB_API_BASE_URL = 'https://marketplace-api.wildberries.ru';
 export const WB_CONTENT_API_BASE_URL = 'https://content-api.wildberries.ru';

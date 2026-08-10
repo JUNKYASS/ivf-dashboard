@@ -1,4 +1,12 @@
-import type { AppConfig, GenerateResponse, MarketplaceApiPublicConfig, OrdersFetchResponse, WbTitlesCacheStatus } from '../types';
+import type {
+  AppConfig,
+  GenerateResponse,
+  MarketplaceApiPublicConfig,
+  OrdersFetchResponse,
+  WarehouseStockStatus,
+  WarehouseStockUploadResponse,
+  WbTitlesCacheStatus,
+} from '../types';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
@@ -54,6 +62,18 @@ export const api = {
     request<OrdersFetchResponse>('/api/marketplace/orders/fetch', {
       method: 'POST',
     }),
+
+  getWarehouseStockStatus: () =>
+    request<WarehouseStockStatus>('/api/marketplace/warehouse-stock'),
+
+  uploadWarehouseStock: (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return request<WarehouseStockUploadResponse>('/api/marketplace/warehouse-stock', {
+      method: 'POST',
+      body: form,
+    });
+  },
 
   syncWbTitlesCache: () =>
     request<WbTitlesCacheStatus>('/api/marketplace/wb-titles/sync', {

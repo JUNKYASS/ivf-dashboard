@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import {
   getMarketplaceApiCredentials,
   getMarketplaceApiPublicConfig,
@@ -6,8 +7,13 @@ import {
 } from '../services/marketplaceEnvService';
 import { fetchAndProcessOrders } from '../services/ordersService';
 import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
+import {
+  getWarehouseStockStatus,
+  saveWarehouseStock,
+} from '../services/warehouseStockService';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/config/marketplace-api', (_req, res) => {
   res.json({
@@ -42,6 +48,25 @@ router.post('/marketplace/wb-titles/sync', async (_req, res, next) => {
     res.json(status);
   } catch (error) {
     next(error);
+  }
+});
+
+router.get('/marketplace/warehouse-stock', (_req, res) => {
+  res.json(getWarehouseStockStatus());
+});
+
+router.post('/marketplace/warehouse-stock', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: 'Файл не передан' });
+    return;
+  }
+
+  try {
+    const result = saveWarehouseStock(req.file.buffer, req.file.originalname);
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Ошибка обработки файла остатков';
+    res.status(400).json({ error: message });
   }
 });
 

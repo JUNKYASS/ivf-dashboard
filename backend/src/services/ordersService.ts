@@ -21,6 +21,8 @@ import {
 import { getMarketplaceApiCredentials } from './marketplaceEnvService';
 import { fetchOzonOrders } from './ozonOrdersService';
 import { fetchWbOrders } from './wbOrdersService';
+import { buildWarehouseStockIndex } from './warehouseStockService';
+import { classifyFabricSaleType } from './fabricSaleTypeService';
 
 type AggregatedLine = {
   marketplaceArticle: string;
@@ -117,7 +119,10 @@ function aggregateRawLines(lines: RawOrderLine[]): AggregatedLine[] {
   return Array.from(map.values());
 }
 
-function buildGroups(classifiedLines: ClassifiedLine[]): OrderGroup[] {
+function buildGroups(
+  classifiedLines: ClassifiedLine[],
+  warehouseIndex: Map<string, number>,
+): OrderGroup[] {
   const grouped = new Map<(typeof ORDER_GROUP_KEYS)[number], OrderRow[]>();
 
   for (const line of classifiedLines) {
@@ -127,6 +132,9 @@ function buildGroups(classifiedLines: ClassifiedLine[]): OrderGroup[] {
       productTitle: line.productTitle,
       supplierArticle: line.supplierArticle,
       quantity: line.quantity,
+      warehouseStock:
+        warehouseIndex.get(normalizeArticle(line.marketplaceArticle)) ?? 0,
+      fabricSaleType: classifyFabricSaleType(line.marketplaceArticle),
       postingNumbers: line.postingNumbers,
     });
     grouped.set(line.groupKey, rows);
@@ -178,6 +186,7 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
 
   const credentials = getMarketplaceApiCredentials();
   const mappingIndex = buildMappingIndex();
+  const warehouseIndex = buildWarehouseStockIndex();
 
   const [ozonResult, wbResult] = await Promise.all([
     credentials.ozonClientId && credentials.ozonApiKey
@@ -215,6 +224,6 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
       ozon: ozonResult.status,
       wb: wbResult.status,
     },
-    groups: buildGroups(classified),
+    groups: buildGroups(classified, warehouseIndex),
   };
 }

@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { MarketplaceApiPublicConfig, WbTitlesCacheStatus } from '../types';
+import type { MarketplaceApiPublicConfig, WarehouseStockStatus, WbTitlesCacheStatus } from '../types';
+import { FileUploadField } from './FileUploadField';
 import { CollapsibleSection } from './CollapsibleSection';
 
 type Props = {
   config: MarketplaceApiPublicConfig | null;
   onConfigChange: (config: MarketplaceApiPublicConfig) => void;
+  warehouseStockEnabled: boolean;
+  onWarehouseStockEnabledChange: (enabled: boolean) => void;
+  warehouseStatus: WarehouseStockStatus | null;
+  warehouseFile: File | null;
+  warehouseUploading: boolean;
+  onWarehouseFileChange: (file: File | null) => void;
 };
 
 function formatCacheDate(iso: string | null): string {
@@ -13,7 +20,49 @@ function formatCacheDate(iso: string | null): string {
   return new Date(iso).toLocaleString('ru-RU');
 }
 
-export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
+function WarehouseStockStatusLine({ status }: { status: WarehouseStockStatus | null }) {
+  if (!status?.exists || !status.file) {
+    return (
+      <p className="warehouse-stock-status">
+        Файл остатков не загружен — колонка «Наш склад» будет 0
+      </p>
+    );
+  }
+
+  return (
+    <p className="warehouse-stock-status warehouse-stock-status-loaded">
+      Остатки: {status.file.originalFileName} · {status.file.entryCount} поз. ·{' '}
+      {new Date(status.file.uploadedAt).toLocaleString('ru-RU')}
+    </p>
+  );
+}
+
+function buildSummary(
+  configuredCount: number,
+  warehouseStockEnabled: boolean,
+  warehouseStatus: WarehouseStockStatus | null,
+): string {
+  const keysPart = `Ключи: ${configuredCount}/3`;
+  if (!warehouseStockEnabled) {
+    return `${keysPart} · Склад: выкл`;
+  }
+
+  const entryCount = warehouseStatus?.file?.entryCount;
+  const warehousePart =
+    entryCount !== undefined ? `Склад: вкл · ${entryCount} поз.` : 'Склад: вкл';
+  return `${keysPart} · ${warehousePart}`;
+}
+
+export function OrdersSettingsBlock({
+  config,
+  onConfigChange,
+  warehouseStockEnabled,
+  onWarehouseStockEnabledChange,
+  warehouseStatus,
+  warehouseFile,
+  warehouseUploading,
+  onWarehouseFileChange,
+}: Props) {
   const [ozonClientId, setOzonClientId] = useState('');
   const [ozonApiKey, setOzonApiKey] = useState('');
   const [wbApiToken, setWbApiToken] = useState('');
@@ -76,9 +125,10 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
 
   return (
     <CollapsibleSection
-      title="API маркетплейсов"
-      summary={`Настроено ключей: ${configuredCount} из 3`}
+      title="Настройки обработки заказов"
+      summary={buildSummary(configuredCount, warehouseStockEnabled, warehouseStatus)}
     >
+      <h3 className="orders-settings-subtitle">API маркетплейсов</h3>
       <div className="marketplace-api-grid">
         <div className="field">
           <label htmlFor="ozon-client-id">Ozon Client-Id</label>
@@ -87,7 +137,11 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
             className="clay-input"
             type="password"
             autoComplete="off"
-            placeholder={config?.ozon.clientIdConfigured ? `Сохранён (${config.ozon.clientIdMask})` : 'Введите Client-Id'}
+            placeholder={
+              config?.ozon.clientIdConfigured
+                ? `Сохранён (${config.ozon.clientIdMask})`
+                : 'Введите Client-Id'
+            }
             value={ozonClientId}
             onChange={(e) => setOzonClientId(e.target.value)}
           />
@@ -99,7 +153,11 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
             className="clay-input"
             type="password"
             autoComplete="off"
-            placeholder={config?.ozon.apiKeyConfigured ? `Сохранён (${config.ozon.apiKeyMask})` : 'Введите Api-Key'}
+            placeholder={
+              config?.ozon.apiKeyConfigured
+                ? `Сохранён (${config.ozon.apiKeyMask})`
+                : 'Введите Api-Key'
+            }
             value={ozonApiKey}
             onChange={(e) => setOzonApiKey(e.target.value)}
           />
@@ -111,7 +169,11 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
             className="clay-input"
             type="password"
             autoComplete="off"
-            placeholder={config?.wb.apiTokenConfigured ? `Сохранён (${config.wb.apiTokenMask})` : 'Введите токен'}
+            placeholder={
+              config?.wb.apiTokenConfigured
+                ? `Сохранён (${config.wb.apiTokenMask})`
+                : 'Введите токен'
+            }
             value={wbApiToken}
             onChange={(e) => setWbApiToken(e.target.value)}
           />
@@ -130,13 +192,16 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
         {saved && <span className="save-hint">Ключи сохранены в .env</span>}
       </div>
 
-      <div className="wb-titles-cache-block">
+      <div className="orders-settings-divider" />
+
+      <h3 className="orders-settings-subtitle">Кэш названий WB</h3>
+      <div className="wb-titles-cache-block wb-titles-cache-block-nested">
         <p className="wb-titles-cache-meta">
-          Кэш названий WB: {titlesCache?.count ?? 0} товаров, {formatCacheDate(titlesCache?.updatedAt ?? null)}
+          {titlesCache?.count ?? 0} товаров, {formatCacheDate(titlesCache?.updatedAt ?? null)}
         </p>
         <p className="wb-titles-cache-hint">
-          WB не отдаёт названия в заказах. Кэш обновляется отдельно и используется при загрузке заказов без
-          дополнительных запросов.
+          WB не отдаёт названия в заказах. Кэш обновляется отдельно и используется при загрузке
+          заказов без дополнительных запросов.
         </p>
         <button
           type="button"
@@ -148,6 +213,34 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
         </button>
         {syncMessage && <span className="wb-titles-cache-message">{syncMessage}</span>}
       </div>
+
+      <div className="orders-settings-divider" />
+
+      <label className="toggle-field">
+        <input
+          type="checkbox"
+          className="toggle-input"
+          checked={warehouseStockEnabled}
+          onChange={(e) => onWarehouseStockEnabledChange(e.target.checked)}
+        />
+        <span className="toggle-switch" aria-hidden />
+        <span className="toggle-label">Учитывать остатки нашего склада</span>
+      </label>
+
+      {warehouseStockEnabled && (
+        <div className="orders-settings-warehouse">
+          <p className="section-hint">
+            Excel: колонка 1 — артикул маркетплейса, колонка 2 — количество на складе
+          </p>
+          <FileUploadField
+            file={warehouseFile}
+            onChange={onWarehouseFileChange}
+            placeholder="Загрузить остатки нашего склада"
+          />
+          {warehouseUploading && <p className="warehouse-stock-uploading">Загрузка файла...</p>}
+          <WarehouseStockStatusLine status={warehouseStatus} />
+        </div>
+      )}
     </CollapsibleSection>
   );
 }

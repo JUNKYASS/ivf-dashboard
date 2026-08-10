@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api/client';
-import { MarketplaceApiBlock } from '../components/MarketplaceApiBlock';
+import { OrdersSettingsBlock } from '../components/OrdersSettingsBlock';
 import { OrderSupplierGroup } from '../components/OrderSupplierGroup';
-import type { MarketplaceApiPublicConfig, OrdersFetchResponse } from '../types';
+import type {
+  MarketplaceApiPublicConfig,
+  OrdersFetchResponse,
+  WarehouseStockStatus,
+} from '../types';
+import { applyWarehouseStock } from '../utils/warehouseStock';
 
 function MarketplaceStatusLine({
   label,
@@ -28,6 +33,10 @@ function MarketplaceStatusLine({
 
 export function OrdersPage() {
   const [apiConfig, setApiConfig] = useState<MarketplaceApiPublicConfig | null>(null);
+  const [warehouseStockEnabled, setWarehouseStockEnabled] = useState(true);
+  const [warehouseStatus, setWarehouseStatus] = useState<WarehouseStockStatus | null>(null);
+  const [warehouseFile, setWarehouseFile] = useState<File | null>(null);
+  const [warehouseUploading, setWarehouseUploading] = useState(false);
   const [ordersData, setOrdersData] = useState<OrdersFetchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,9 +46,36 @@ export function OrdersPage() {
     setApiConfig(data);
   }, []);
 
+  const loadWarehouseStatus = useCallback(async () => {
+    const data = await api.getWarehouseStockStatus();
+    setWarehouseStatus(data);
+  }, []);
+
   useEffect(() => {
     void loadApiConfig().catch((err: Error) => setError(err.message));
-  }, [loadApiConfig]);
+    void loadWarehouseStatus().catch((err: Error) => setError(err.message));
+  }, [loadApiConfig, loadWarehouseStatus]);
+
+  const handleWarehouseFileChange = async (file: File | null) => {
+    setWarehouseFile(file);
+    if (!file) return;
+
+    setWarehouseUploading(true);
+    setError(null);
+
+    try {
+      const result = await api.uploadWarehouseStock(file);
+      setWarehouseStatus({ exists: true, file: result.file });
+      if (ordersData) {
+        setOrdersData(applyWarehouseStock(ordersData, result.stockByArticle));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки файла остатков');
+      setWarehouseFile(null);
+    } finally {
+      setWarehouseUploading(false);
+    }
+  };
 
   const handleFetchOrders = async () => {
     setLoading(true);
@@ -59,7 +95,16 @@ export function OrdersPage() {
     <div>
       <h1 className="page-title">Обработка заказов</h1>
 
-      <MarketplaceApiBlock config={apiConfig} onConfigChange={setApiConfig} />
+      <OrdersSettingsBlock
+        config={apiConfig}
+        onConfigChange={setApiConfig}
+        warehouseStockEnabled={warehouseStockEnabled}
+        onWarehouseStockEnabledChange={setWarehouseStockEnabled}
+        warehouseStatus={warehouseStatus}
+        warehouseFile={warehouseFile}
+        warehouseUploading={warehouseUploading}
+        onWarehouseFileChange={(file) => void handleWarehouseFileChange(file)}
+      />
 
       <section className="section clay-card orders-actions">
         <button type="button" className="clay-btn" disabled={loading} onClick={() => void handleFetchOrders()}>
@@ -81,7 +126,13 @@ export function OrdersPage() {
               <p className="empty-state">Нет заказов для отображения</p>
             </section>
           ) : (
-            ordersData.groups.map((group) => <OrderSupplierGroup key={group.key} group={group} />)
+            ordersData.groups.map((group) => (
+              <OrderSupplierGroup
+                key={group.key}
+                group={group}
+                warehouseStockEnabled={warehouseStockEnabled}
+              />
+            ))
           )}
         </section>
       )}
