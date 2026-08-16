@@ -976,6 +976,97 @@ select {
   border-bottom: none;
 }
 
+.orders-mobile-list {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.orders-mobile-card {
+  padding: 8px 10px;
+  border: 0.5px solid var(--separator);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.orders-mobile-card + .orders-mobile-card {
+  margin-top: 6px;
+}
+
+.orders-mobile-card-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.orders-mobile-article {
+  min-width: 0;
+  flex: 1;
+}
+
+.orders-mobile-article .order-article-code {
+  font-size: 14px;
+}
+
+.orders-mobile-qty {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  text-align: right;
+}
+
+.orders-mobile-qty-value {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.orders-mobile-warehouse {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--label-secondary);
+}
+
+.orders-mobile-toggle {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.orders-mobile-details {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 0.5px solid var(--separator);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.orders-mobile-detail {
+  display: grid;
+  grid-template-columns: minmax(72px, 34%) minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.orders-mobile-detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+
+.orders-mobile-detail-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .warehouse-stock-available {
   font-weight: 600;
   color: var(--system-green);
@@ -1049,5 +1140,66 @@ select {
   .suppliers-grid,
   .galtex-slots {
     grid-template-columns: 1fr;
+  }
+
+  .marketplace-api-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplace-api-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .marketplace-api-actions .clay-btn {
+    width: 100%;
+  }
+
+  .orders-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orders-actions .clay-btn {
+    width: 100%;
+  }
+
+  .orders-fabric-subsection-header,
+  .orders-group-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orders-fabric-subsection-header .orders-copy-wrap,
+  .orders-group-actions .orders-copy-wrap {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orders-fabric-subsection-header .orders-copy-btn,
+  .orders-group-actions .orders-copy-btn {
+    width: 100%;
+  }
+
+  .wb-titles-cache-block .clay-btn {
+    width: 100%;
+  }
+
+  .collapsible-trigger h2 {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .orders-table-wrap {
+    overflow-x: visible;
+  }
+
+  .orders-table {
+    display: none;
+  }
+
+  .orders-mobile-list {
+    display: block;
   }
 }

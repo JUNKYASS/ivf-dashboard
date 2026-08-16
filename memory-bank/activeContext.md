@@ -1,14 +1,15 @@
 # Memory Bank: Active Context
 
 ## Текущий фокус
-Нет активной задачи. Заархивированы: `orders-fabric-cut-roll`, `orders-warehouse-stock`.
+**Task:** `orders-mobile-responsive` — REFLECT завершён, итерация 2 внедрена
 
 ## Режим
-**IDLE** — готово к `/van`
+**ARCHIVE** — готово к архивации
 
-## Последний архив
-- `memory-bank/archive/archive-orders-warehouse-stock.md`
-- `memory-bank/archive/archive-orders-fabric-cut-roll.md`
+## Финальный mobile UX
+- Compact card: артикул слева, `×qty` + `склад N` справа
+- «Подробнее» → название, поставщик, отправления
+- Desktop: полная таблица без изменений
 
 ## Блокеры
 Нет

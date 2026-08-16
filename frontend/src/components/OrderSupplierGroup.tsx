@@ -9,7 +9,7 @@ import { CollapsibleSection } from './CollapsibleSection';
 
 const POSTING_PREVIEW_LIMIT = 3;
 const COPY_SUCCESS_DURATION_MS = 2000;
-const SUPPLIER_COPY_LABEL = 'Скопировать артикулы поставщика';
+const SUPPLIER_COPY_LABEL = 'Скопировать арт. поставщика';
 
 function PostingNumbers({ numbers }: { numbers: string[] }) {
   const [expanded, setExpanded] = useState(false);
@@ -180,6 +180,20 @@ function OrdersTable({
   warehouseStockEnabled: boolean;
   showBadges: boolean;
 }) {
+  const [expandedArticles, setExpandedArticles] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (article: string) => {
+    setExpandedArticles((prev) => {
+      const next = new Set(prev);
+      if (next.has(article)) {
+        next.delete(article);
+      } else {
+        next.add(article);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="orders-table-wrap">
       <table className="orders-table">
@@ -229,6 +243,78 @@ function OrdersTable({
           ))}
         </tbody>
       </table>
+
+      <ul className="orders-mobile-list">
+        {rows.map((row) => {
+          const hasDetails =
+            Boolean(row.productTitle) ||
+            Boolean(row.supplierArticle) ||
+            row.postingNumbers.length > 0;
+          const expanded = expandedArticles.has(row.marketplaceArticle);
+
+          return (
+            <li key={row.marketplaceArticle} className="orders-mobile-card">
+              <div className="orders-mobile-card-main">
+                <div className="orders-mobile-article">
+                  <div className="order-article-code-row">
+                    <span className="order-article-code">{row.marketplaceArticle}</span>
+                    {showBadges && row.fabricSaleType && (
+                      <FabricTypeBadge type={row.fabricSaleType} />
+                    )}
+                  </div>
+                </div>
+                <div className="orders-mobile-qty">
+                  <span className="orders-mobile-qty-value">×{row.quantity}</span>
+                  {warehouseStockEnabled && (
+                    <span
+                      className={`orders-mobile-warehouse${row.warehouseStock > 0 ? ' warehouse-stock-available' : ''
+                        }`}
+                    >
+                      склад {row.warehouseStock}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {hasDetails && (
+                <>
+                  <button
+                    type="button"
+                    className="link-btn orders-mobile-toggle"
+                    onClick={() => toggleExpanded(row.marketplaceArticle)}
+                  >
+                    {expanded ? 'Свернуть' : 'Подробнее'}
+                  </button>
+                  {expanded && (
+                    <div className="orders-mobile-details">
+                      {row.productTitle && (
+                        <div className="orders-mobile-detail">
+                          <span className="orders-mobile-detail-label">Название</span>
+                          <span className="orders-mobile-detail-value">{row.productTitle}</span>
+                        </div>
+                      )}
+                      {row.supplierArticle && (
+                        <div className="orders-mobile-detail">
+                          <span className="orders-mobile-detail-label">Арт. поставщика</span>
+                          <span className="orders-mobile-detail-value">{row.supplierArticle}</span>
+                        </div>
+                      )}
+                      {row.postingNumbers.length > 0 && (
+                        <div className="orders-mobile-detail">
+                          <span className="orders-mobile-detail-label">Отправления</span>
+                          <span className="orders-mobile-detail-value">
+                            <PostingNumbers numbers={row.postingNumbers} />
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
