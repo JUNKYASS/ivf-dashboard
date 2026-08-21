@@ -1,10 +1,10 @@
 # Memory Bank: Active Context
 
 ## Текущий фокус
-**Task:** `galtex-copy-article-sort` — natural sort артикулов Galtex при копировании
+**Task:** `orders-filters-mobile-compact` — компактные filter chips на mobile
 
 ## Режим
-**REFLECT** — build завершён, готово к рефлексии
+Level 1 — сделано
 
 ## Блокеры
 Нет

@@ -3,13 +3,17 @@ import { api } from '../api/client';
 import { OrdersSettingsBlock } from '../components/OrdersSettingsBlock';
 import { OrderSupplierGroup } from '../components/OrderSupplierGroup';
 import type {
+  FabricSaleType,
   MarketplaceApiPublicConfig,
   OrdersFetchResponse,
   WarehouseStockStatus,
 } from '../types';
+import {
+  FABRIC_SUPPLIER_FILTERS,
+  resolveFilteredOrdersView,
+} from '../utils/orderSupplierFilters';
 import { applyWarehouseStock } from '../utils/warehouseStock';
 import {
-  getWarehouseStockDisplayName,
   readStoredWarehouseStockStatus,
   storeWarehouseStockStatus,
 } from '../utils/warehouseStockDisplay';
@@ -45,6 +49,8 @@ export function OrdersPage() {
   const [warehouseFile, setWarehouseFile] = useState<File | null>(null);
   const [warehouseUploading, setWarehouseUploading] = useState(false);
   const [ordersData, setOrdersData] = useState<OrdersFetchResponse | null>(null);
+  const [fabricTypeFilter, setFabricTypeFilter] = useState<FabricSaleType | null>(null);
+  const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +100,8 @@ export function OrdersPage() {
 
     try {
       const data = await api.fetchOrders();
+      setFabricTypeFilter(null);
+      setSupplierFilter(null);
       setOrdersData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка получения заказов');
@@ -101,6 +109,18 @@ export function OrdersPage() {
       setLoading(false);
     }
   };
+
+  const toggleFabricTypeFilter = (type: FabricSaleType) => {
+    setFabricTypeFilter((current) => (current === type ? null : type));
+  };
+
+  const toggleSupplierFilter = (key: string) => {
+    setSupplierFilter((current) => (current === key ? null : key));
+  };
+
+  const filteredView = ordersData
+    ? resolveFilteredOrdersView(ordersData.groups, supplierFilter, fabricTypeFilter)
+    : null;
 
   return (
     <div>
@@ -137,13 +157,79 @@ export function OrdersPage() {
               <p className="empty-state">Нет заказов для отображения</p>
             </section>
           ) : (
-            ordersData.groups.map((group) => (
-              <OrderSupplierGroup
-                key={group.key}
-                group={group}
-                warehouseStockEnabled={warehouseStockEnabled}
-              />
-            ))
+            <>
+              <div className="orders-filter-rows">
+                <div
+                  className="orders-fabric-type-filters orders-catalog-filters"
+                  role="group"
+                  aria-label="Фильтр по типу ткани"
+                >
+                  <button
+                    type="button"
+                    className={`clay-btn clay-btn-secondary${
+                      fabricTypeFilter === 'cut' ? ' is-active' : ''
+                    }`}
+                    aria-pressed={fabricTypeFilter === 'cut'}
+                    onClick={() => toggleFabricTypeFilter('cut')}
+                  >
+                    Все отрезы
+                  </button>
+                  <button
+                    type="button"
+                    className={`clay-btn clay-btn-secondary${
+                      fabricTypeFilter === 'roll' ? ' is-active' : ''
+                    }`}
+                    aria-pressed={fabricTypeFilter === 'roll'}
+                    onClick={() => toggleFabricTypeFilter('roll')}
+                  >
+                    Все рулоны
+                  </button>
+                </div>
+
+                <div
+                  className="orders-supplier-filters orders-catalog-filters"
+                  role="group"
+                  aria-label="Фильтр по поставщику"
+                >
+                  {FABRIC_SUPPLIER_FILTERS.map((supplier) => (
+                    <button
+                      type="button"
+                      key={supplier.key}
+                      className={`clay-btn clay-btn-secondary${
+                        supplierFilter === supplier.key ? ' is-active' : ''
+                      }`}
+                      aria-pressed={supplierFilter === supplier.key}
+                      onClick={() => toggleSupplierFilter(supplier.key)}
+                    >
+                      {supplier.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {filteredView?.kind === 'all' &&
+                ordersData.groups.map((group) => (
+                  <OrderSupplierGroup
+                    key={group.key}
+                    group={group}
+                    warehouseStockEnabled={warehouseStockEnabled}
+                  />
+                ))}
+
+              {filteredView?.kind === 'group' && (
+                <OrderSupplierGroup
+                  key={filteredView.group.key}
+                  group={filteredView.group}
+                  warehouseStockEnabled={warehouseStockEnabled}
+                />
+              )}
+
+              {filteredView?.kind === 'empty' && (
+                <section className="section clay-card">
+                  <p className="empty-state">{filteredView.message}</p>
+                </section>
+              )}
+            </>
           )}
         </section>
       )}

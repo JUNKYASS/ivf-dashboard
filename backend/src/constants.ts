@@ -75,6 +75,7 @@ export const SUPPLIER_PREFIX_CONFIG: Record<string, { key: string; title: string
   TDL: { key: 'tdl', title: 'ТДЛ' },
   CHN: { key: 'chanshu', title: 'Чаншу' },
   LT: { key: 'lakitex', title: 'ЛакиТекс' },
+  FNX: { key: 'fenix', title: 'Феникс' },
 };
 
 export const ORDER_GROUP_KEYS = [
@@ -87,6 +88,7 @@ export const ORDER_GROUP_KEYS = [
   'tdl',
   'chanshu',
   'lakitex',
+  'fenix',
   'bedding',
   'unmapped',
 ] as const;

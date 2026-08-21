@@ -1,6 +1,17 @@
-import type { FabricSaleType, OrderRow } from '../types';
+import type { FabricSaleType, OrderGroup, OrderRow } from '../types';
 
-const FABRIC_SUPPLIER_PREFIXES = ['GT', 'TD', 'QUM', 'AD', 'TT', 'LTP', 'TDL', 'CHN', 'LT'] as const;
+const FABRIC_SUPPLIER_PREFIXES = [
+  'GT',
+  'TD',
+  'QUM',
+  'AD',
+  'TT',
+  'LTP',
+  'TDL',
+  'CHN',
+  'LT',
+  'FNX',
+] as const;
 
 export function isFabricArticle(article: string): boolean {
   const prefix = article.trim().split('-')[0]?.toUpperCase() ?? '';
@@ -36,6 +47,21 @@ export function splitRowsByFabricSaleType(rows: OrderRow[]): FabricRowBuckets {
   }
 
   return { cuts, rolls, otherFabric, nonFabric };
+}
+
+export function collectRowsByFabricSaleType(
+  groups: OrderGroup[],
+  type: FabricSaleType,
+): OrderRow[] {
+  const rows: OrderRow[] = [];
+  for (const group of groups) {
+    for (const row of group.rows) {
+      if (row.fabricSaleType === type) {
+        rows.push(row);
+      }
+    }
+  }
+  return rows;
 }
 
 export function fabricSaleTypeLabel(type: FabricSaleType): string {

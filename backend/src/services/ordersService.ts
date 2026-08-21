@@ -46,6 +46,7 @@ const GROUP_TITLES: Record<(typeof ORDER_GROUP_KEYS)[number], string> = {
   tdl: 'ТДЛ',
   chanshu: 'Чаншу',
   lakitex: 'ЛакиТекс',
+  fenix: 'Феникс',
   bedding: 'Постельное белье',
   unmapped: 'Без сопоставления',
 };
