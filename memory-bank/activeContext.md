@@ -1,15 +1,10 @@
 # Memory Bank: Active Context
 
 ## Текущий фокус
-**Task:** `orders-mobile-responsive` — REFLECT завершён, итерация 2 внедрена
+**Task:** `galtex-copy-article-sort` — natural sort артикулов Galtex при копировании
 
 ## Режим
-**ARCHIVE** — готово к архивации
-
-## Финальный mobile UX
-- Compact card: артикул слева, `×qty` + `склад N` справа
-- «Подробнее» → название, поставщик, отправления
-- Desktop: полная таблица без изменений
+**REFLECT** — build завершён, готово к рефлексии
 
 ## Блокеры
 Нет

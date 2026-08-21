@@ -8,6 +8,11 @@ import type {
   WarehouseStockStatus,
 } from '../types';
 import { applyWarehouseStock } from '../utils/warehouseStock';
+import {
+  getWarehouseStockDisplayName,
+  readStoredWarehouseStockStatus,
+  storeWarehouseStockStatus,
+} from '../utils/warehouseStockDisplay';
 
 function MarketplaceStatusLine({
   label,
@@ -34,7 +39,9 @@ function MarketplaceStatusLine({
 export function OrdersPage() {
   const [apiConfig, setApiConfig] = useState<MarketplaceApiPublicConfig | null>(null);
   const [warehouseStockEnabled, setWarehouseStockEnabled] = useState(true);
-  const [warehouseStatus, setWarehouseStatus] = useState<WarehouseStockStatus | null>(null);
+  const [warehouseStatus, setWarehouseStatus] = useState<WarehouseStockStatus | null>(
+    readStoredWarehouseStockStatus,
+  );
   const [warehouseFile, setWarehouseFile] = useState<File | null>(null);
   const [warehouseUploading, setWarehouseUploading] = useState(false);
   const [ordersData, setOrdersData] = useState<OrdersFetchResponse | null>(null);
@@ -49,6 +56,7 @@ export function OrdersPage() {
   const loadWarehouseStatus = useCallback(async () => {
     const data = await api.getWarehouseStockStatus();
     setWarehouseStatus(data);
+    storeWarehouseStockStatus(data);
   }, []);
 
   useEffect(() => {
@@ -65,7 +73,10 @@ export function OrdersPage() {
 
     try {
       const result = await api.uploadWarehouseStock(file);
-      setWarehouseStatus({ exists: true, file: result.file });
+      const nextStatus: WarehouseStockStatus = { exists: true, file: result.file };
+      setWarehouseStatus(nextStatus);
+      storeWarehouseStockStatus(nextStatus);
+      setWarehouseFile(null);
       if (ordersData) {
         setOrdersData(applyWarehouseStock(ordersData, result.stockByArticle));
       }

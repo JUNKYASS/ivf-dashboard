@@ -5,6 +5,8 @@ type Props = {
   onChange: (file: File | null) => void;
   accept?: string;
   placeholder?: string;
+  loadedFileName?: string | null;
+  loadedFileMeta?: string | null;
 };
 
 export function FileUploadField({
@@ -12,10 +14,14 @@ export function FileUploadField({
   onChange,
   accept = '.xlsx,.xls',
   placeholder = 'Загрузить файл остатков',
+  loadedFileName,
+  loadedFileMeta,
 }: Props) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const displayedFileName = file?.name ?? loadedFileName ?? null;
+  const hasFile = Boolean(displayedFileName);
 
   const handlePick = (picked: File | null) => {
     onChange(picked);
@@ -43,7 +49,7 @@ export function FileUploadField({
     <div className="file-upload-wrap">
       <label
         htmlFor={id}
-        className={`file-upload${file ? ' has-file' : ''}${dragOver ? ' drag-over' : ''}`}
+        className={`file-upload${hasFile ? ' has-file' : ''}${dragOver ? ' drag-over' : ''}`}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
@@ -59,12 +65,12 @@ export function FileUploadField({
           onChange={handleInputChange}
           hidden
         />
-        {file ? (
+        {hasFile ? (
           <>
             <span className="file-upload-icon" aria-hidden>
               ✓
             </span>
-            <span className="file-upload-name">{file.name}</span>
+            <span className="file-upload-name">{displayedFileName}</span>
             <span className="file-upload-hint">Нажмите, чтобы заменить файл</span>
           </>
         ) : (
@@ -77,6 +83,9 @@ export function FileUploadField({
           </>
         )}
       </label>
+      {hasFile && loadedFileMeta && (
+        <p className="file-upload-meta">{loadedFileMeta}</p>
+      )}
       {file && (
         <button type="button" className="file-upload-clear" onClick={handleClear}>
           Убрать

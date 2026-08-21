@@ -56,6 +56,7 @@ function prepareRowsForCopy(
   rows: OrderRow[],
   warehouseStockEnabled: boolean,
   useSupplierSort: boolean,
+  groupKey?: string,
 ): OrderRow[] {
   const prepared = rows
     .map((row) => ({
@@ -66,24 +67,27 @@ function prepareRowsForCopy(
     }))
     .filter((row) => row.quantity > 0);
 
-  return useSupplierSort ? sortRowsForSupplierCopy(prepared) : prepared;
+  return useSupplierSort
+    ? sortRowsForSupplierCopy(prepared, { naturalArticleSort: groupKey === 'galtex' })
+    : prepared;
 }
 
 async function copyRows(
   rows: OrderRow[],
   warehouseStockEnabled: boolean,
   getCopyAsMarketplace: (row: OrderRow) => boolean,
+  groupKey?: string,
 ): Promise<'ok' | 'empty'> {
   const useSupplierSort = rows.some((row) => !getCopyAsMarketplace(row));
-  const prepared = prepareRowsForCopy(rows, warehouseStockEnabled, useSupplierSort);
+  const prepared = prepareRowsForCopy(rows, warehouseStockEnabled, useSupplierSort, groupKey);
 
   if (prepared.length === 0) return 'empty';
 
-  const text = prepared
-    .map((row) => formatOrderRowForCopy(row, getCopyAsMarketplace(row)))
-    .join('\n');
+  const formattedLines = prepared.map((row) => formatOrderRowForCopy(row, getCopyAsMarketplace(row)));
+  const text = formattedLines.map((line) => line.text).join('\n');
+  const html = formattedLines.map((line) => line.html).join('<br>');
 
-  await copyToClipboard(text);
+  await copyToClipboard({ text, html });
   return 'ok';
 }
 
@@ -107,12 +111,14 @@ function CopyRowsButton({
   rows,
   warehouseStockEnabled,
   getCopyAsMarketplace,
+  groupKey,
   emptyMessage = 'Нет позиций для отгрузки у поставщика',
 }: {
   label: string;
   rows: OrderRow[];
   warehouseStockEnabled: boolean;
   getCopyAsMarketplace: (row: OrderRow) => boolean;
+  groupKey?: string;
   emptyMessage?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -131,7 +137,7 @@ function CopyRowsButton({
 
     setShowEmptyMessage(false);
 
-    const result = await copyRows(rows, warehouseStockEnabled, getCopyAsMarketplace);
+    const result = await copyRows(rows, warehouseStockEnabled, getCopyAsMarketplace, groupKey);
     if (result === 'empty') {
       setShowEmptyMessage(true);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
@@ -326,6 +332,7 @@ function FabricSubsection({
   warehouseStockEnabled,
   getCopyAsMarketplace,
   showBadges,
+  groupKey,
 }: {
   title: string;
   rows: OrderRow[];
@@ -333,6 +340,7 @@ function FabricSubsection({
   warehouseStockEnabled: boolean;
   getCopyAsMarketplace: (row: OrderRow) => boolean;
   showBadges: boolean;
+  groupKey: string;
 }) {
   if (rows.length === 0) return null;
 
@@ -347,6 +355,7 @@ function FabricSubsection({
           rows={rows}
           warehouseStockEnabled={warehouseStockEnabled}
           getCopyAsMarketplace={getCopyAsMarketplace}
+          groupKey={groupKey}
         />
       </div>
       <OrdersTable rows={rows} warehouseStockEnabled={warehouseStockEnabled} showBadges={showBadges} />
@@ -377,10 +386,11 @@ function FabricSplitGroup({
               Прочие позиции ({nonFabric.length} поз.)
             </h4>
             <CopyRowsButton
-              label="Скопировать артикулы маркетплейса"
+              label="Скопировать арт. маркетплейса"
               rows={nonFabric}
               warehouseStockEnabled={warehouseStockEnabled}
               getCopyAsMarketplace={marketplaceCopy}
+              groupKey={group.key}
             />
           </div>
           <OrdersTable
@@ -398,6 +408,7 @@ function FabricSplitGroup({
         warehouseStockEnabled={warehouseStockEnabled}
         getCopyAsMarketplace={fabricOnly ? unmappedFabricCopy : supplierCopy}
         showBadges
+        groupKey={group.key}
       />
       <FabricSubsection
         title="Рулоны"
@@ -406,6 +417,7 @@ function FabricSplitGroup({
         warehouseStockEnabled={warehouseStockEnabled}
         getCopyAsMarketplace={fabricOnly ? unmappedFabricCopy : supplierCopy}
         showBadges
+        groupKey={group.key}
       />
       <FabricSubsection
         title="Прочее"
@@ -414,6 +426,7 @@ function FabricSplitGroup({
         warehouseStockEnabled={warehouseStockEnabled}
         getCopyAsMarketplace={fabricOnly ? unmappedFabricCopy : supplierCopy}
         showBadges={false}
+        groupKey={group.key}
       />
     </>
   );
@@ -432,12 +445,13 @@ function SimpleGroup({
         <CopyRowsButton
           label={
             group.copyMarketplaceArticles
-              ? 'Скопировать артикулы маркетплейса'
+              ? 'Скопировать арт. маркетплейса'
               : SUPPLIER_COPY_LABEL
           }
           rows={group.rows}
           warehouseStockEnabled={warehouseStockEnabled}
           getCopyAsMarketplace={() => group.copyMarketplaceArticles}
+          groupKey={group.key}
         />
       </div>
       <OrdersTable rows={group.rows} warehouseStockEnabled={warehouseStockEnabled} showBadges={false} />

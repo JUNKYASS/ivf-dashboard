@@ -42,13 +42,21 @@ export const writeOutputFiles = (
   XLSX.writeFile(wbWb, wbPath);
 };
 
+const isValidStockArticle = (article: string | undefined): boolean => {
+  if (article == null) return false;
+  const normalized = String(article).trim();
+  return normalized !== '' && normalized !== 'undefined';
+};
+
 export const toOzonRows = (data: StockRow[]): OzonRow[] =>
-  data.map((item) => ({
-    'Название склада (идентификатор склада)': WAREHOUSE_ID,
-    Артикул: item[0],
-    'Название товара': '',
-    'Доступно на складе, шт': item[2],
-  }));
+  data
+    .filter((item) => isValidStockArticle(item[0]))
+    .map((item) => ({
+      'Название склада (идентификатор склада)': WAREHOUSE_ID,
+      Артикул: String(item[0]).trim(),
+      'Название товара': '',
+      'Доступно на складе, шт': item[2],
+    }));
 
 export const toWbRows = (data: StockRow[]): WbRow[] =>
   data

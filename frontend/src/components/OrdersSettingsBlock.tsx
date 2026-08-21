@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import type { MarketplaceApiPublicConfig, WarehouseStockStatus, WbTitlesCacheStatus } from '../types';
 import { FileUploadField } from './FileUploadField';
 import { CollapsibleSection } from './CollapsibleSection';
+import { getWarehouseStockDisplayName, getWarehouseStockMetaLine } from '../utils/warehouseStockDisplay';
 
 type Props = {
   config: MarketplaceApiPublicConfig | null;
@@ -21,18 +22,11 @@ function formatCacheDate(iso: string | null): string {
 }
 
 function WarehouseStockStatusLine({ status }: { status: WarehouseStockStatus | null }) {
-  if (!status?.exists || !status.file) {
-    return (
-      <p className="warehouse-stock-status">
-        Файл остатков не загружен — колонка «Наш склад» будет 0
-      </p>
-    );
-  }
+  if (status?.exists) return null;
 
   return (
-    <p className="warehouse-stock-status warehouse-stock-status-loaded">
-      Остатки: {status.file.originalFileName} · {status.file.entryCount} поз. ·{' '}
-      {new Date(status.file.uploadedAt).toLocaleString('ru-RU')}
+    <p className="warehouse-stock-status">
+      Файл остатков не загружен — колонка «Наш склад» будет 0
     </p>
   );
 }
@@ -236,6 +230,8 @@ export function OrdersSettingsBlock({
             file={warehouseFile}
             onChange={onWarehouseFileChange}
             placeholder="Загрузить остатки нашего склада"
+            loadedFileName={getWarehouseStockDisplayName(warehouseStatus)}
+            loadedFileMeta={getWarehouseStockMetaLine(warehouseStatus)}
           />
           {warehouseUploading && <p className="warehouse-stock-uploading">Загрузка файла...</p>}
           <WarehouseStockStatusLine status={warehouseStatus} />

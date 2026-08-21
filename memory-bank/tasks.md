@@ -1,25 +1,26 @@
 # Memory Bank: Tasks
 
-## Текущая задача: `orders-mobile-responsive`
+## Текущая задача: `galtex-copy-article-sort`
 
-**Сложность:** Level 2  
-**Страница:** `/orders` — «Обработка заказов»  
-**Статус:** REFLECT COMPLETE ✅ (итерация 2)
+**Сложность:** Level 1  
+**Страница:** `/orders` — копирование артикулов Galtex  
+**Статус:** REFLECT COMPLETE ✅
 
 ### Цель
-Компактная адаптивная вёрстка таблицы заказов на mobile.
+При копировании артикулов поставщика Galtex сортировать по имени/артикулу (номер рисунка от меньшего к большему) после материала и плотности. Артикул поставщика — жирным при вставке.
 
 ### Чеклист
-- [x] VAN / BUILD — первая итерация (CSS card table)
-- [x] REFLECT + UX-итерация 2 — compact mobile list
-- [x] Primary: артикул + ×кол-во, склад inline
-- [x] Secondary: название / поставщик / отправления → «Подробнее»
-- [x] Reflection doc: `memory-bank/reflection/reflection-orders-mobile-responsive.md`
+- [x] VAN — Level 1, прямой BUILD
+- [x] Natural sort (`localeCompare` + `numeric: true`) для Galtex
+- [x] Проброс `groupKey` в цепочку copy
+- [x] Жирный `supplierArticle` в HTML-буфере (`<b>`)
 - [x] `npm run build` ✅
+- [x] Reflection: `memory-bank/reflection/reflection-galtex-copy-article-sort.md`
 
 ### Затронутые файлы
+- `frontend/src/utils/fabricMaterial.ts`
 - `frontend/src/components/OrderSupplierGroup.tsx`
-- `frontend/src/styles/global.css`
+- `frontend/src/utils/copyToClipboard.ts`
 
 ## Следующий шаг
 → `/archive`
@@ -30,5 +31,8 @@
 
 | Task ID | Название | Сложность | Архив |
 |---------|----------|-----------|-------|
+| `warehouse-upload-ui-persist` | UI загрузки склада + персистентность | Level 2 | `memory-bank/archive/archive-warehouse-upload-ui-persist.md` |
+| `parser-ozon-undefined-filter` | Фильтр `undefined` в Ozon-остатках | Level 1 | `memory-bank/archive/archive-parser-ozon-undefined-filter.md` |
+| `orders-mobile-responsive` | Mobile-responsive `/orders` | Level 2 | `memory-bank/archive/archive-orders-mobile-responsive.md` |
 | `orders-fabric-cut-roll` | Отрез / рулон в заказах | Level 3 | `memory-bank/archive/archive-orders-fabric-cut-roll.md` |
 | `orders-warehouse-stock` | Остатки «Наш склад» на `/orders` | Level 2 | `memory-bank/archive/archive-orders-warehouse-stock.md` |

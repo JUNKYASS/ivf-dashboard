@@ -1,30 +1,51 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+
+const NAV_ITEMS = [
+  { to: '/parser', label: 'Парсер остатков' },
+  { to: '/orders', label: 'Обработка заказов' },
+  { to: '/stickers', label: 'Генерация стикеров' },
+] as const;
 
 export function Layout() {
+  const [navOpen, setNavOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="layout">
       <header className="app-header">
         <div className="app-header-inner">
           <span className="app-title">Панель управления / IVANOVOFABRIC</span>
-          <nav className="segmented-nav" aria-label="Разделы">
-            <NavLink
-              to="/parser"
-              className={({ isActive }) => `segmented-link${isActive ? ' active' : ''}`}
-            >
-              Парсер остатков
-            </NavLink>
-            <NavLink
-              to="/orders"
-              className={({ isActive }) => `segmented-link${isActive ? ' active' : ''}`}
-            >
-              Обработка заказов
-            </NavLink>
-            <NavLink
-              to="/stickers"
-              className={({ isActive }) => `segmented-link${isActive ? ' active' : ''}`}
-            >
-              Генерация стикеров
-            </NavLink>
+          <button
+            type="button"
+            className={`app-nav-toggle${navOpen ? ' is-open' : ''}`}
+            aria-expanded={navOpen}
+            aria-controls="app-nav"
+            aria-label={navOpen ? 'Закрыть меню' : 'Открыть меню'}
+            onClick={() => setNavOpen((open) => !open)}
+          >
+            <span className="app-nav-toggle-bar" />
+            <span className="app-nav-toggle-bar" />
+            <span className="app-nav-toggle-bar" />
+          </button>
+          <nav
+            id="app-nav"
+            className={`segmented-nav${navOpen ? ' is-open' : ''}`}
+            aria-label="Разделы"
+          >
+            {NAV_ITEMS.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) => `segmented-link${isActive ? ' active' : ''}`}
+              >
+                {label}
+              </NavLink>
+            ))}
           </nav>
         </div>
       </header>

@@ -25,7 +25,7 @@ export function parseLogosStocks(
         stocksValue[0] && String(stocksValue[0]).trim() === String(mappingValue[1]).trim(),
     );
     const remain =
-      valueMatch && valueMatch.length > 0 && Number(valueMatch[15]) > thresholdConfig.threshold
+      valueMatch && valueMatch.length > 0 && Number(valueMatch[14]) > thresholdConfig.threshold
         ? thresholdConfig.remain
         : 0;
 

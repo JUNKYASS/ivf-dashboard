@@ -61,9 +61,18 @@ export function getFabricMaterialSortIndex(marketplaceArticle: string): number {
   return index === -1 ? FABRIC_MATERIAL_NAME_SORT_ORDER.length : index;
 }
 
+function compareSupplierArticles(articleA: string, articleB: string, naturalNumeric: boolean): number {
+  if (naturalNumeric) {
+    return articleA.localeCompare(articleB, 'ru', { numeric: true, sensitivity: 'base' });
+  }
+  return articleA.localeCompare(articleB, 'ru');
+}
+
 export function sortRowsForSupplierCopy<
   T extends { marketplaceArticle: string; supplierArticle: string | null },
->(rows: T[]): T[] {
+>(rows: T[], options?: { naturalArticleSort?: boolean }): T[] {
+  const naturalArticleSort = options?.naturalArticleSort ?? false;
+
   return [...rows].sort((a, b) => {
     const byMaterial =
       getFabricMaterialSortIndex(a.marketplaceArticle) -
@@ -82,7 +91,7 @@ export function sortRowsForSupplierCopy<
 
     const articleA = a.supplierArticle ?? a.marketplaceArticle;
     const articleB = b.supplierArticle ?? b.marketplaceArticle;
-    return articleA.localeCompare(articleB, 'ru');
+    return compareSupplierArticles(articleA, articleB, naturalArticleSort);
   });
 }
 
@@ -106,32 +115,70 @@ export function parseMarketplaceArticleDimensions(marketplaceArticle: string): {
   };
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function boldHtml(text: string): string {
+  return `<b>${escapeHtml(text)}</b>`;
+}
+
+export type FormattedCopyLine = {
+  text: string;
+  html: string;
+};
+
 function formatSupplierCopyLine(
   marketplaceArticle: string,
   supplierArticle: string,
   quantity: number,
-): string {
+): FormattedCopyLine {
   const { materialName, widthCm, densityGr } = parseMarketplaceArticleDimensions(marketplaceArticle);
 
   if (materialName && widthCm && densityGr) {
-    return `${materialName} ${widthCm}см ${densityGr}гр / ${quantity} шт / ${supplierArticle}`;
+    const prefix = `${materialName} ${widthCm}см ${densityGr}гр / `;
+    const qtyPart = `${quantity} шт`;
+    const suffix = ` / ${supplierArticle}`;
+    return {
+      text: `${prefix}${qtyPart}${suffix}`,
+      html: `${escapeHtml(prefix)}${boldHtml(qtyPart)}${escapeHtml(suffix)}`,
+    };
   }
 
   if (materialName) {
-    return `${supplierArticle} (${materialName}) Кол-во: ${quantity}шт`;
+    const prefix = `${supplierArticle} (${materialName}) Кол-во: `;
+    const qtyPart = `${quantity}шт`;
+    return {
+      text: `${prefix}${qtyPart}`,
+      html: `${escapeHtml(prefix)}${boldHtml(qtyPart)}`,
+    };
   }
 
-  return `${supplierArticle} Кол-во: ${quantity}шт`;
+  const prefix = `${supplierArticle} Кол-во: `;
+  const qtyPart = `${quantity}шт`;
+  return {
+    text: `${prefix}${qtyPart}`,
+    html: `${escapeHtml(prefix)}${boldHtml(qtyPart)}`,
+  };
 }
 
-function formatMarketplaceArticleCopyLine(marketplaceArticle: string, quantity: number): string {
-  return `${marketplaceArticle} / ${quantity} шт`;
+function formatMarketplaceArticleCopyLine(marketplaceArticle: string, quantity: number): FormattedCopyLine {
+  const prefix = `${marketplaceArticle} / `;
+  const qtyPart = `${quantity} шт`;
+  return {
+    text: `${prefix}${qtyPart}`,
+    html: `${escapeHtml(prefix)}${boldHtml(qtyPart)}`,
+  };
 }
 
 export function formatOrderRowForCopy(
   row: { marketplaceArticle: string; supplierArticle: string | null; quantity: number },
   copyMarketplaceArticles: boolean,
-): string {
+): FormattedCopyLine {
   if (copyMarketplaceArticles) {
     return formatMarketplaceArticleCopyLine(row.marketplaceArticle, row.quantity);
   }
