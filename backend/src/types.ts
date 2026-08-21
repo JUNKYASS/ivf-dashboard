@@ -66,6 +66,7 @@ export type RawOrderLine = {
   postingNumber: string;
   marketplaceArticle: string;
   productTitle: string | null;
+  imageUrl: string | null;
   quantity: number;
 };
 
@@ -85,6 +86,7 @@ export type FabricSaleType = 'cut' | 'roll';
 export type OrderRow = {
   marketplaceArticle: string;
   productTitle: string | null;
+  imageUrl: string | null;
   supplierArticle: string | null;
   quantity: number;
   warehouseStock: number;
@@ -120,6 +122,7 @@ export const STORAGE_DIR = process.env.STORAGE_DIR ?? path.join(BACKEND_ROOT, 's
 export const CONFIG_PATH = process.env.CONFIG_PATH ?? path.join(BACKEND_ROOT, 'config', 'settings.json');
 export const MAPPING_PATH = path.join(STORAGE_DIR, 'mapping.xlsx');
 export const WB_TITLES_CACHE_PATH = path.join(STORAGE_DIR, 'wb-titles-cache.json');
+export const OZON_PRODUCT_CACHE_PATH = path.join(STORAGE_DIR, 'ozon-product-cache.json');
 export const OUTPUT_DIR = path.join(STORAGE_DIR, 'output');
 export const OZON_OUTPUT_PATH = path.join(OUTPUT_DIR, 'ozon-stocks.xlsx');
 export const WB_OUTPUT_PATH = path.join(OUTPUT_DIR, 'wb-stocks.xlsx');

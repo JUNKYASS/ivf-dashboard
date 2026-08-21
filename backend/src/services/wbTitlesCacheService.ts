@@ -5,11 +5,20 @@ import { WB_CONTENT_API_BASE_URL } from '../constants';
 import { STORAGE_DIR, WB_TITLES_CACHE_PATH } from '../types';
 import { normalizeArticle } from './mappingLookupService';
 
+type WbCardPhoto = {
+  big?: string;
+  c246x328?: string;
+  c516x688?: string;
+  square?: string;
+  tm?: string;
+};
+
 type WbCard = {
   nmID?: number;
   vendorCode?: string;
   title?: string;
   updatedAt?: string;
+  photos?: WbCardPhoto[];
 };
 
 type WbCardsListResponse = {
@@ -25,6 +34,8 @@ export type WbTitlesCacheFile = {
   updatedAt: string;
   byArticle: Record<string, string>;
   byNmId: Record<string, string>;
+  imageByArticle: Record<string, string>;
+  imageByNmId: Record<string, string>;
 };
 
 export type WbTitlesCacheStatus = {
@@ -46,7 +57,35 @@ function sleep(ms: number): Promise<void> {
 }
 
 function emptyCache(): WbTitlesCacheFile {
-  return { updatedAt: '', byArticle: {}, byNmId: {} };
+  return {
+    updatedAt: '',
+    byArticle: {},
+    byNmId: {},
+    imageByArticle: {},
+    imageByNmId: {},
+  };
+}
+
+function normalizeCache(raw: Partial<WbTitlesCacheFile> | null | undefined): WbTitlesCacheFile {
+  return {
+    updatedAt: raw?.updatedAt ?? '',
+    byArticle: raw?.byArticle ?? {},
+    byNmId: raw?.byNmId ?? {},
+    imageByArticle: raw?.imageByArticle ?? {},
+    imageByNmId: raw?.imageByNmId ?? {},
+  };
+}
+
+function pickCardImageUrl(photos: WbCardPhoto[] | undefined): string | null {
+  const photo = photos?.[0];
+  if (!photo) return null;
+  const url =
+    photo.c246x328?.trim() ||
+    photo.tm?.trim() ||
+    photo.square?.trim() ||
+    photo.big?.trim() ||
+    '';
+  return url || null;
 }
 
 function readCacheFromDisk(): WbTitlesCacheFile {
@@ -56,7 +95,7 @@ function readCacheFromDisk(): WbTitlesCacheFile {
 
   try {
     const raw = fs.readFileSync(WB_TITLES_CACHE_PATH, 'utf-8');
-    return JSON.parse(raw) as WbTitlesCacheFile;
+    return normalizeCache(JSON.parse(raw) as Partial<WbTitlesCacheFile>);
   } catch {
     return emptyCache();
   }
@@ -95,6 +134,18 @@ export function lookupWbProductTitle(article: string, nmId?: number): string | n
 
   if (nmId !== undefined) {
     return cache.byNmId[String(nmId)] ?? null;
+  }
+
+  return null;
+}
+
+export function lookupWbProductImage(article: string, nmId?: number): string | null {
+  const cache = getWbTitlesCache();
+  const byArticle = cache.imageByArticle[normalizeArticle(article)];
+  if (byArticle) return byArticle;
+
+  if (nmId !== undefined) {
+    return cache.imageByNmId[String(nmId)] ?? null;
   }
 
   return null;
@@ -177,14 +228,26 @@ function getNextPageCursor(
 function addCardsToCache(cache: WbTitlesCacheFile, cards: WbCard[]): void {
   for (const card of cards) {
     const title = card.title?.trim();
-    if (!title) continue;
+    const imageUrl = pickCardImageUrl(card.photos);
 
     if (card.vendorCode) {
-      cache.byArticle[normalizeArticle(card.vendorCode)] = title;
+      const articleKey = normalizeArticle(card.vendorCode);
+      if (title) {
+        cache.byArticle[articleKey] = title;
+      }
+      if (imageUrl) {
+        cache.imageByArticle[articleKey] = imageUrl;
+      }
     }
 
     if (card.nmID !== undefined) {
-      cache.byNmId[String(card.nmID)] = title;
+      const nmKey = String(card.nmID);
+      if (title) {
+        cache.byNmId[nmKey] = title;
+      }
+      if (imageUrl) {
+        cache.imageByNmId[nmKey] = imageUrl;
+      }
     }
   }
 }

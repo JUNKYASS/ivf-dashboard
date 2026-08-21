@@ -27,6 +27,7 @@ import { classifyFabricSaleType } from './fabricSaleTypeService';
 type AggregatedLine = {
   marketplaceArticle: string;
   productTitle: string | null;
+  imageUrl: string | null;
   quantity: number;
   postingNumbers: string[];
 };
@@ -104,6 +105,9 @@ function aggregateRawLines(lines: RawOrderLine[]): AggregatedLine[] {
       if (!existing.productTitle && line.productTitle) {
         existing.productTitle = line.productTitle;
       }
+      if (!existing.imageUrl && line.imageUrl) {
+        existing.imageUrl = line.imageUrl;
+      }
       if (!existing.postingNumbers.includes(line.postingNumber)) {
         existing.postingNumbers.push(line.postingNumber);
       }
@@ -111,6 +115,7 @@ function aggregateRawLines(lines: RawOrderLine[]): AggregatedLine[] {
       map.set(key, {
         marketplaceArticle: line.marketplaceArticle,
         productTitle: line.productTitle,
+        imageUrl: line.imageUrl,
         quantity: line.quantity,
         postingNumbers: [line.postingNumber],
       });
@@ -131,6 +136,7 @@ function buildGroups(
     rows.push({
       marketplaceArticle: line.marketplaceArticle,
       productTitle: line.productTitle,
+      imageUrl: line.imageUrl,
       supplierArticle: line.supplierArticle,
       quantity: line.quantity,
       warehouseStock:

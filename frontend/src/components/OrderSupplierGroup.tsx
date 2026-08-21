@@ -52,6 +52,83 @@ function FabricTypeBadge({ type }: { type: FabricSaleType }) {
   );
 }
 
+function ProductImageLightbox({
+  src,
+  alt,
+  onClose,
+}: {
+  src: string;
+  alt: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="order-product-lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        className="order-product-lightbox-close"
+        aria-label="Закрыть"
+        onClick={onClose}
+      >
+        ×
+      </button>
+      <img
+        className="order-product-lightbox-image"
+        src={src}
+        alt={alt}
+      />
+    </div>
+  );
+}
+
+function ProductThumb({ src, alt }: { src: string | null; alt: string }) {
+  const [open, setOpen] = useState(false);
+
+  if (!src) {
+    return <span className="order-product-thumb order-product-thumb-empty" aria-hidden />;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="order-product-thumb-btn"
+        onClick={() => setOpen(true)}
+        aria-label={`Открыть фото: ${alt}`}
+      >
+        <img
+          className="order-product-thumb"
+          src={src}
+          alt=""
+          width={40}
+          height={40}
+          loading="lazy"
+          decoding="async"
+        />
+      </button>
+      {open && <ProductImageLightbox src={src} alt={alt} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 function prepareRowsForCopy(
   rows: OrderRow[],
   warehouseStockEnabled: boolean,
@@ -224,15 +301,20 @@ function OrdersTable({
             <tr key={row.marketplaceArticle}>
               <td>
                 <div className="order-article-cell">
-                  <div className="order-article-code-row">
-                    <span className="order-article-code">{row.marketplaceArticle}</span>
-                    {showBadges && row.fabricSaleType && (
-                      <FabricTypeBadge type={row.fabricSaleType} />
-                    )}
+                  <div className="order-article-main">
+                    <ProductThumb src={row.imageUrl} alt={row.marketplaceArticle} />
+                    <div className="order-article-text">
+                      <div className="order-article-code-row">
+                        <span className="order-article-code">{row.marketplaceArticle}</span>
+                        {showBadges && row.fabricSaleType && (
+                          <FabricTypeBadge type={row.fabricSaleType} />
+                        )}
+                      </div>
+                      {row.productTitle && (
+                        <span className="order-article-title">{row.productTitle}</span>
+                      )}
+                    </div>
                   </div>
-                  {row.productTitle && (
-                    <span className="order-article-title">{row.productTitle}</span>
-                  )}
                 </div>
               </td>
               <td>{row.supplierArticle ?? '—'}</td>
@@ -261,6 +343,7 @@ function OrdersTable({
           return (
             <li key={row.marketplaceArticle} className="orders-mobile-card">
               <div className="orders-mobile-card-main">
+                <ProductThumb src={row.imageUrl} alt={row.marketplaceArticle} />
                 <div className="orders-mobile-article">
                   <div className="order-article-code-row">
                     <span className="order-article-code">{row.marketplaceArticle}</span>

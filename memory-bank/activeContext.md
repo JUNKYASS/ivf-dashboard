@@ -1,10 +1,13 @@
 # Memory Bank: Active Context
 
 ## Текущий фокус
-**Task:** `orders-filters-mobile-compact` — компактные filter chips на mobile
+Нет активной задачи.
 
 ## Режим
-Level 1 — сделано
+Готов к **`/van`**.
+
+## Последнее завершённое
+`orders-product-images` — `memory-bank/archive/archive-orders-product-images.md`
 
 ## Блокеры
 Нет

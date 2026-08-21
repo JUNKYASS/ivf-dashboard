@@ -1,17 +1,7 @@
 # Memory Bank: Tasks
 
-## Текущая задача: `orders-filters-mobile-compact`
-
-**Сложность:** Level 1  
-**Статус:** VAN + BUILD done  
-**Страница:** `/orders`
-
-### Цель
-На mobile кнопки фильтров (отрезы/рулоны/поставщики) не растягивать на всю ширину — компактный wrap-ряд.
-
-### Сделано
-- Убран `flex-direction: column` + `width: 100%` в media query
-- Chip-layout: `width: auto`, меньший padding/font/min-height
+## Текущая задача
+*[Нет активной задачи — готов к `/van`]*
 
 ---
 
@@ -19,6 +9,7 @@
 
 | Task ID | Название | Сложность | Архив |
 |---------|----------|-----------|-------|
+| `orders-product-images` | Картинки товаров в заказах (кэш + lightbox) | Level 2 | `memory-bank/archive/archive-orders-product-images.md` |
 | `orders-supplier-filter` | Фильтр по поставщикам + Феникс (FNX) | Level 2 | `memory-bank/archive/archive-orders-supplier-filter.md` |
 | `orders-filter-buttons-unify-style` | Единый стиль кнопок cut/roll и suppliers | Level 1 | `memory-bank/archive/archive-orders-filter-buttons-unify-style.md` |
 | `orders-fabric-type-filter` | Фильтр Отрез/Рулон на `/orders` | Level 2 | `memory-bank/archive/archive-orders-fabric-type-filter.md` |

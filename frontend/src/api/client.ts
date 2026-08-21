@@ -3,6 +3,7 @@ import type {
   GenerateResponse,
   MarketplaceApiPublicConfig,
   OrdersFetchResponse,
+  OzonProductCacheStatus,
   WarehouseStockStatus,
   WarehouseStockUploadResponse,
   WbTitlesCacheStatus,
@@ -77,6 +78,11 @@ export const api = {
 
   syncWbTitlesCache: () =>
     request<WbTitlesCacheStatus>('/api/marketplace/wb-titles/sync', {
+      method: 'POST',
+    }),
+
+  syncOzonProductCache: () =>
+    request<OzonProductCacheStatus>('/api/marketplace/ozon-products/sync', {
       method: 'POST',
     }),
 };

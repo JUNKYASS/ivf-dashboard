@@ -6,6 +6,10 @@ import {
   updateMarketplaceApiConfig,
 } from '../services/marketplaceEnvService';
 import { fetchAndProcessOrders } from '../services/ordersService';
+import {
+  getOzonProductCacheStatus,
+  syncOzonProductCache,
+} from '../services/ozonProductCacheService';
 import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
 import {
   getWarehouseStockStatus,
@@ -19,6 +23,7 @@ router.get('/config/marketplace-api', (_req, res) => {
   res.json({
     ...getMarketplaceApiPublicConfig(),
     wbTitlesCache: getWbTitlesCacheStatus(),
+    ozonProductCache: getOzonProductCacheStatus(),
   });
 });
 
@@ -33,6 +38,7 @@ router.post('/config/marketplace-api', (req, res) => {
   res.json({
     ...config,
     wbTitlesCache: getWbTitlesCacheStatus(),
+    ozonProductCache: getOzonProductCacheStatus(),
   });
 });
 
@@ -45,6 +51,21 @@ router.post('/marketplace/wb-titles/sync', async (_req, res, next) => {
     }
 
     const status = await syncWbTitlesCache(credentials.wbApiToken);
+    res.json(status);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/marketplace/ozon-products/sync', async (_req, res, next) => {
+  try {
+    const credentials = getMarketplaceApiCredentials();
+    if (!credentials.ozonClientId || !credentials.ozonApiKey) {
+      res.status(400).json({ error: 'Не настроены OZON_CLIENT_ID / OZON_API_KEY' });
+      return;
+    }
+
+    const status = await syncOzonProductCache(credentials.ozonClientId, credentials.ozonApiKey);
     res.json(status);
   } catch (error) {
     next(error);

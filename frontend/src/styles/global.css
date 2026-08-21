@@ -992,6 +992,97 @@ select {
   gap: 2px;
 }
 
+.order-article-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.order-article-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.order-product-thumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--bg-fill);
+}
+
+.order-product-thumb-btn {
+  display: inline-flex;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+  border-radius: 6px;
+  line-height: 0;
+}
+
+.order-product-thumb-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--system-blue) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.order-product-thumb-empty {
+  display: inline-block;
+  border: 1px solid color-mix(in srgb, var(--label-tertiary) 50%, transparent);
+}
+
+.order-product-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  cursor: zoom-out;
+}
+
+.order-product-lightbox-image {
+  max-width: min(920px, 100%);
+  max-height: min(90vh, 100%);
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  cursor: zoom-out;
+}
+
+.order-product-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.order-product-lightbox-close:hover {
+  background: #ffffff;
+}
+
 .order-article-code-row {
   display: flex;
   flex-wrap: wrap;
@@ -1098,6 +1189,10 @@ select {
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+}
+
+.orders-mobile-card-main .order-product-thumb {
+  margin-top: 1px;
 }
 
 .orders-mobile-article {

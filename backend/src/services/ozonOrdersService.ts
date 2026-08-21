@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { OZON_API_BASE_URL } from '../constants';
 import type { RawOrderLine } from '../types';
+import { lookupOzonProductImage } from './ozonProductCacheService';
 
 type OzonProduct = {
   offer_id?: string;
@@ -77,6 +78,7 @@ export async function fetchOzonOrders(clientId: string, apiKey: string): Promise
           postingNumber: `OZN${postingNumber}`,
           marketplaceArticle: offerId,
           productTitle,
+          imageUrl: lookupOzonProductImage(offerId),
           quantity: product.quantity && product.quantity > 0 ? product.quantity : 1,
         });
       }

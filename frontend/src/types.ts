@@ -78,6 +78,12 @@ export type WbTitlesCacheStatus = {
   count: number;
 };
 
+export type OzonProductCacheStatus = {
+  exists: boolean;
+  updatedAt: string | null;
+  count: number;
+};
+
 export type MarketplaceApiPublicConfig = {
   ozon: {
     clientIdConfigured: boolean;
@@ -90,6 +96,7 @@ export type MarketplaceApiPublicConfig = {
     apiTokenMask: string | null;
   };
   wbTitlesCache: WbTitlesCacheStatus;
+  ozonProductCache: OzonProductCacheStatus;
 };
 
 export type WarehouseStockFileInfo = {
@@ -113,6 +120,7 @@ export type FabricSaleType = 'cut' | 'roll';
 export type OrderRow = {
   marketplaceArticle: string;
   productTitle: string | null;
+  imageUrl: string | null;
   supplierArticle: string | null;
   quantity: number;
   warehouseStock: number;

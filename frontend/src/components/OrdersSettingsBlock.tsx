@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { MarketplaceApiPublicConfig, WarehouseStockStatus, WbTitlesCacheStatus } from '../types';
+import type {
+  MarketplaceApiPublicConfig,
+  OzonProductCacheStatus,
+  WarehouseStockStatus,
+  WbTitlesCacheStatus,
+} from '../types';
 import { FileUploadField } from './FileUploadField';
 import { CollapsibleSection } from './CollapsibleSection';
 import { getWarehouseStockDisplayName, getWarehouseStockMetaLine } from '../utils/warehouseStockDisplay';
@@ -65,12 +70,23 @@ export function OrdersSettingsBlock({
   const [syncingTitles, setSyncingTitles] = useState(false);
   const [titlesCache, setTitlesCache] = useState<WbTitlesCacheStatus | null>(config?.wbTitlesCache ?? null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncingOzonProducts, setSyncingOzonProducts] = useState(false);
+  const [ozonProductCache, setOzonProductCache] = useState<OzonProductCacheStatus | null>(
+    config?.ozonProductCache ?? null,
+  );
+  const [ozonSyncMessage, setOzonSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (config?.wbTitlesCache) {
       setTitlesCache(config.wbTitlesCache);
     }
   }, [config?.wbTitlesCache]);
+
+  useEffect(() => {
+    if (config?.ozonProductCache) {
+      setOzonProductCache(config.ozonProductCache);
+    }
+  }, [config?.ozonProductCache]);
 
   const configuredCount = [
     config?.ozon.clientIdConfigured,
@@ -94,6 +110,7 @@ export function OrdersSettingsBlock({
       setWbApiToken('');
       setSaved(true);
       setTitlesCache(data.wbTitlesCache);
+      setOzonProductCache(data.ozonProductCache);
       onConfigChange(data);
     } finally {
       setSaving(false);
@@ -114,6 +131,23 @@ export function OrdersSettingsBlock({
       setSyncMessage(error instanceof Error ? error.message : 'Ошибка синхронизации');
     } finally {
       setSyncingTitles(false);
+    }
+  };
+
+  const handleSyncOzonProducts = async () => {
+    setSyncingOzonProducts(true);
+    setOzonSyncMessage(null);
+    try {
+      const status = await api.syncOzonProductCache();
+      setOzonProductCache(status);
+      setOzonSyncMessage(`Кэш обновлён: ${status.count} фото`);
+      if (config) {
+        onConfigChange({ ...config, ozonProductCache: status });
+      }
+    } catch (error) {
+      setOzonSyncMessage(error instanceof Error ? error.message : 'Ошибка синхронизации');
+    } finally {
+      setSyncingOzonProducts(false);
     }
   };
 
@@ -188,14 +222,14 @@ export function OrdersSettingsBlock({
 
       <div className="orders-settings-divider" />
 
-      <h3 className="orders-settings-subtitle">Кэш названий WB</h3>
+      <h3 className="orders-settings-subtitle">Кэш товаров WB</h3>
       <div className="wb-titles-cache-block wb-titles-cache-block-nested">
         <p className="wb-titles-cache-meta">
           {titlesCache?.count ?? 0} товаров, {formatCacheDate(titlesCache?.updatedAt ?? null)}
         </p>
         <p className="wb-titles-cache-hint">
-          WB не отдаёт названия в заказах. Кэш обновляется отдельно и используется при загрузке
-          заказов без дополнительных запросов.
+          WB не отдаёт названия и фото в заказах. Одна кнопка обновляет кэш названий и URL
+          картинок — затем они подставляются при «Получить заказы».
         </p>
         <button
           type="button"
@@ -203,9 +237,35 @@ export function OrdersSettingsBlock({
           disabled={syncingTitles || !config?.wb.apiTokenConfigured}
           onClick={() => void handleSyncTitles()}
         >
-          {syncingTitles ? 'Синхронизация...' : 'Обновить кэш названий WB'}
+          {syncingTitles ? 'Синхронизация...' : 'Обновить кэш WB'}
         </button>
         {syncMessage && <span className="wb-titles-cache-message">{syncMessage}</span>}
+      </div>
+
+      <div className="orders-settings-divider" />
+
+      <h3 className="orders-settings-subtitle">Кэш товаров Ozon</h3>
+      <div className="wb-titles-cache-block wb-titles-cache-block-nested">
+        <p className="wb-titles-cache-meta">
+          {ozonProductCache?.count ?? 0} фото, {formatCacheDate(ozonProductCache?.updatedAt ?? null)}
+        </p>
+        <p className="wb-titles-cache-hint">
+          Ozon не отдаёт картинки в заказах. Кэш обновляется отдельно и используется при загрузке
+          заказов без дополнительных запросов.
+        </p>
+        <button
+          type="button"
+          className="clay-btn clay-btn-secondary"
+          disabled={
+            syncingOzonProducts ||
+            !config?.ozon.clientIdConfigured ||
+            !config?.ozon.apiKeyConfigured
+          }
+          onClick={() => void handleSyncOzonProducts()}
+        >
+          {syncingOzonProducts ? 'Синхронизация...' : 'Обновить кэш Ozon'}
+        </button>
+        {ozonSyncMessage && <span className="wb-titles-cache-message">{ozonSyncMessage}</span>}
       </div>
 
       <div className="orders-settings-divider" />
