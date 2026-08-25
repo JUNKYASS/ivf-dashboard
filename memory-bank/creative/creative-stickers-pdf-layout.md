@@ -111,7 +111,7 @@ HelveticaBold 8pt × 28 × ~0.55 ≈ 123 pt. Ширина минус поля 1.
 
 ## DECISION
 
-**Option 2.** Фиксированная полоса 9 мм, wrap ≤2, 8→6pt, left, uniform contain.
+**Option 2** + amend 2026-08-25: полоса **6.5 мм**, кегль **5.5→4.5pt**, left, uniform contain. Оригинал МП ~32.5 мм (было 31 при полосе 9 мм / 8pt).
 
 Почему не 1: multi-SKU — часть ТЗ, ellipsis ломает смысл «не перепутать».  
 Почему не 3: на терморулоне важнее одинаковая геометрия, чем +3 мм barcode.  
@@ -129,11 +129,11 @@ Ozon 75×120: contain как есть; в UI hint «в кабинете Ozon ф�
 const MM = 72 / 25.4;
 export const LABEL_WIDTH_PT = 58 * MM;   // 164.41
 export const LABEL_HEIGHT_PT = 40 * MM;  // 113.39
-export const BAND_HEIGHT_PT = 9 * MM;    // 25.51
-export const PAGE_INSET_PT = 1 * MM;     // клип принтера
+export const BAND_HEIGHT_PT = 6.5 * MM;  // 18.42 — оригинал ~32.5 мм
+export const PAGE_INSET_PT = 1 * MM;
 export const BAND_PAD_X_PT = 1.5 * MM;
-export const FONT_SIZE_MAX = 8;
-export const FONT_SIZE_MIN = 6;
+export const FONT_SIZE_MAX = 5.5;
+export const FONT_SIZE_MIN = 4.5;
 export const MAX_LINES = 2;
 export const HAIRLINE_PT = 0.4;
 ```
@@ -204,13 +204,12 @@ Helvetica WinAnsi. Перед draw: если charCode > 255 → заменить
 ┌──────────────────────────────────────┐ ▲
 │              inset 1mm               │
 │     ┌──────────────────────────┐     │
-│     │                          │     │ 31 mm  original CONTAIN
+│     │                          │     │ 32.5 mm original CONTAIN
 │     │     Ozon/WB label        │     │  (uniform scale, centered)
 │     │     (barcode intact)     │     │
 │     └──────────────────────────┘     │
 │──────────────────────────────────────│ hairline 0.4pt
-│ GT-220120-BZ-33-Aquarelle            │
-│ ART-B x2                             │  9 mm band, left, ≤2 lines
+│ GT-220120-BZ-33-Aquarelle            │  6.5 mm band, left, ≤2 lines, 5.5→4.5pt
 └──────────────────────────────────────┘ ▼
          40 mm tall
 ```
@@ -219,7 +218,7 @@ Data flow страницы:
 
 ```mermaid
 flowchart LR
-  src["Ozon PDF page / WB PNG"] --> contain["uniform contain в 58×31"]
+  src["Ozon PDF page / WB PNG"] --> contain["uniform contain в 58×32.5"]
   cap["formatArticleCaption"] --> fit["fitCaption 8→6pt wrap≤2"]
   contain --> page["PDF page 58×40"]
   fit --> page
@@ -267,6 +266,6 @@ Ozon крупный шаблон: не решается layout'ом. Hint в UI.
 
 ## 🎨🎨🎨 EXITING CREATIVE PHASE - DECISION MADE
 
-**Summary:** фиксированная нижняя полоса 9 мм, оригинал contain в 31 мм, текст left 8→6pt до 2 строк.  
+**Summary:** полоса 6.5 мм, оригинал ~32.5 мм, текст left 5.5→4.5pt до 2 строк.  
 **Key decisions:** Option 2; no stretch; no adaptive band; WinAnsi fallback `?`.  
 **Next:** BUILD (VAN QA опционален — стек уже выбран, pdf-lib ставится в BUILD).

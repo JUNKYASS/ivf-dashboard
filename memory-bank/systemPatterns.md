@@ -7,7 +7,8 @@
 
 ### Backend: сервисный слой
 - **Routes** — тонкие контроллеры, только HTTP-обработка
-- **Services** — бизнес-логика (`generateService`, `ordersService`, `mappingLookupService`)
+- **Services** — бизнес-логика (`generateService`, `ordersService`, `mappingLookupService`, `stickersService` / `*LabelsService`)
+- **Stickers ≠ Orders** — этикетки живут в отдельных `ozonLabelsService` / `wbLabelsService`. Статусы другие (`awaiting_deliver`, `confirm+waiting+supplyId`); orders-сервисы не трогать.
 - **Parsers** — отдельный модуль на поставщика (`galtex.ts`, `texdesign.ts`, …)
 
 ### Frontend: страницы + композиция компонентов

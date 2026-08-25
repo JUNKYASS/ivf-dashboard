@@ -9,7 +9,7 @@
 |--------|--------|------------|
 | Парсер остатков (`/parser`) | ✅ Готово | Galtex, TD, AD, TDL, Logos, TT; фильтр undefined в Ozon |
 | Обработка заказов (`/orders`) | ✅ Готово | Ozon + WB, склад, отрез/рулон, фильтры, фото товаров (кэш), mobile, upload UI persist |
-| Генерация стикеров (`/stickers`) | ✅ Готово | Level 3 `stickers-label-generation` BUILD; PDF 58×40 + артикул |
+| Генерация стикеров (`/stickers`) | ✅ Готово | Level 3 `stickers-label-generation` ARCHIVED; PDF 58×40 + артикул |
 | Basic Auth | ⚠️ Отключён | Middleware закомментирован |
 | Docker деплой | ✅ Готово | docker-compose + nginx |
 | Memory Bank | ✅ Инициализирован | 2026-08-09 |
@@ -31,12 +31,13 @@
 - README.md устарел (неполный список API)
 - `md spec 1.md` / `md spec 2.md` в корне — устаревшие ТЗ
 - Auth отключён в dev
-- StickersPage — этикетки Ozon/WB 58×40 с артикулом МП
+- Stickers: ручная термопечать 58×40 @ 100% ещё не проверена; 3 длинных SKU могут уйти в ellipsis
 
 ## Архив задач
 
 | Дата | Task ID | Архив |
 |------|---------|-------|
+| 2026-08-25 | `stickers-label-generation` | `memory-bank/archive/archive-stickers-label-generation.md` |
 | 2026-08-22 | `orders-product-images` | `memory-bank/archive/archive-orders-product-images.md` |
 | 2026-08-21 | `orders-supplier-filter` | `memory-bank/archive/archive-orders-supplier-filter.md` |
 | 2026-08-21 | `orders-filter-buttons-unify-style` | `memory-bank/archive/archive-orders-filter-buttons-unify-style.md` |
@@ -49,6 +50,7 @@
 | 2026-08-10 | `orders-warehouse-stock` | `memory-bank/archive/archive-orders-warehouse-stock.md` |
 
 ## История инициализации
+- **2026-08-25**: ARCHIVE — `stickers-label-generation`
 - **2026-08-25**: BUILD amend — WB стикеры: skip `canceled_by_client` / пустой supply (CHN-… призрак)
 - **2026-08-25**: REFLECT — `stickers-label-generation` — 3 длинных SKU = ellipsis; → ARCHIVE
 - **2026-08-25**: BUILD — `stickers-label-generation` — live Ozon 27×58×40, WB 5 PDF → REFLECT

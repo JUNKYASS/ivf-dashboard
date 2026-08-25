@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import {
   BAND_HEIGHT_PT,
+  FONT_SIZE_MAX,
   FONT_SIZE_MIN,
   LABEL_HEIGHT_PT,
   LABEL_WIDTH_PT,
@@ -72,7 +73,7 @@ test('fitCaption keeps a typical article on one line', async () => {
   const maxWidth = LABEL_WIDTH_PT - 2 * 1.5 * (72 / 25.4);
   const fitted = fitCaption('GT-220120-BZ-33-Aquarelle', font, maxWidth);
   assert.equal(fitted.lines.length, 1);
-  assert.ok(fitted.size >= FONT_SIZE_MIN);
+  assert.equal(fitted.size, FONT_SIZE_MAX);
 });
 
 test('fitCaption wraps multi-sku caption to at most 2 lines', async () => {

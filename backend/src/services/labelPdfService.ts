@@ -10,11 +10,11 @@ const MM = 72 / 25.4;
 
 export const LABEL_WIDTH_PT = 58 * MM;
 export const LABEL_HEIGHT_PT = 40 * MM;
-export const BAND_HEIGHT_PT = 9 * MM;
+export const BAND_HEIGHT_PT = 6.5 * MM;
 export const PAGE_INSET_PT = 1 * MM;
 export const BAND_PAD_X_PT = 1.5 * MM;
-export const FONT_SIZE_MAX = 8;
-export const FONT_SIZE_MIN = 6;
+export const FONT_SIZE_MAX = 5.5;
+export const FONT_SIZE_MIN = 4.5;
 export const MAX_LINES = 2;
 export const HAIRLINE_PT = 0.4;
 

@@ -48,7 +48,7 @@ ivf-dashboard/
 - `POST /api/marketplace/ozon-products/sync`
 - `POST /api/marketplace/orders/fetch`
 - `POST /api/marketplace/stickers/ozon` — PDF этикеток FBS awaiting_deliver
-- `POST /api/marketplace/stickers/wb` — PDF стикеров WB confirm
+- `POST /api/marketplace/stickers/wb` — PDF стикеров WB на сборке (`confirm` + `waiting` + `supplyId`)
 
 ## Хранилище (runtime)
 - `backend/storage/mapping.xlsx` — загруженный mapping

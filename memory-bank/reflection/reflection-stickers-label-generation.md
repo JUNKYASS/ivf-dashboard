@@ -3,13 +3,13 @@
 **Feature / ID:** `stickers-label-generation`  
 **Дата:** 2026-08-25  
 **Сложность:** Level 3  
-**Статус:** REFLECT complete → ARCHIVE
+**Статус:** ARCHIVED → `memory-bank/archive/archive-stickers-label-generation.md`
 
 ---
 
 ## Brief Feature Summary
 
-`/stickers`: PDF этикеток 58×40 мм. Ozon FBS `awaiting_deliver` + package-label PDF; WB `confirm` + PNG stickers → pdf-lib. Маркетплейсный артикул в фиксированной полосе 9 мм снизу (оригинал contain в 31 мм).
+`/stickers`: PDF этикеток 58×40 мм. Ozon FBS `awaiting_deliver` + package-label PDF; WB `confirm`+`waiting` + PNG stickers → pdf-lib. Маркетплейсный артикул в полосе **6.5 мм** снизу (5.5pt), оригинал contain ~32.5 мм.
 
 Live: Ozon 27 стр. ровно 58×40 мм; WB сначала 5 стр., из них 1 призрак `canceled_by_client` — пофикшено фильтром `confirm+waiting+supplyId`.
 
@@ -145,6 +145,6 @@ Style guide: UI скопирован с `/orders`, без отдельного U
 
 ## Next Steps
 
-- ARCHIVE
+- ARCHIVE — done 2026-08-25
 - Опционально: дожать кегль/3 строки под multi-SKU
 - Ручная печать 58×40 @ 100%
