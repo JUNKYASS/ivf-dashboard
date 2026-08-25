@@ -9,7 +9,7 @@
 |--------|--------|------------|
 | Парсер остатков (`/parser`) | ✅ Готово | Galtex, TD, AD, TDL, Logos, TT; фильтр undefined в Ozon |
 | Обработка заказов (`/orders`) | ✅ Готово | Ozon + WB, склад, отрез/рулон, фильтры, фото товаров (кэш), mobile, upload UI persist |
-| Генерация стикеров (`/stickers`) | ⏳ Заглушка | UI placeholder |
+| Генерация стикеров (`/stickers`) | ✅ Готово | Level 3 `stickers-label-generation` BUILD; PDF 58×40 + артикул |
 | Basic Auth | ⚠️ Отключён | Middleware закомментирован |
 | Docker деплой | ✅ Готово | docker-compose + nginx |
 | Memory Bank | ✅ Инициализирован | 2026-08-09 |
@@ -25,13 +25,13 @@
 - Фото товаров в заказах (кэш WB/Ozon + lightbox)
 - Копирование списков артикулов (с учётом остатков на нашем складе; Galtex natural sort)
 - Загрузка файла остатков нашего склада с персистентным UI
-- WB titles cache sync
+- Генерация этикеток Ozon/WB 58×40 с артикулом (`/stickers`)
 
 ## Известный технический долг
 - README.md устарел (неполный список API)
 - `md spec 1.md` / `md spec 2.md` в корне — устаревшие ТЗ
 - Auth отключён в dev
-- StickersPage — не реализована
+- StickersPage — этикетки Ozon/WB 58×40 с артикулом МП
 
 ## Архив задач
 
@@ -49,6 +49,12 @@
 | 2026-08-10 | `orders-warehouse-stock` | `memory-bank/archive/archive-orders-warehouse-stock.md` |
 
 ## История инициализации
+- **2026-08-25**: BUILD amend — WB стикеры: skip `canceled_by_client` / пустой supply (CHN-… призрак)
+- **2026-08-25**: REFLECT — `stickers-label-generation` — 3 длинных SKU = ellipsis; → ARCHIVE
+- **2026-08-25**: BUILD — `stickers-label-generation` — live Ozon 27×58×40, WB 5 PDF → REFLECT
+- **2026-08-25**: CREATIVE — `stickers-pdf-layout` Option 2 (полоса 9 мм, contain, wrap≤2) → BUILD
+- **2026-08-25**: PLAN — `stickers-label-generation` — WB PNG→pdf-lib, caption locked → CREATIVE
+- **2026-08-25**: VAN — `stickers-label-generation` (Level 3) → PLAN
 - **2026-08-09**: VAN init — Memory Bank создан
 - **2026-08-21**: ARCHIVE — warehouse upload UI persist, parser ozon filter, mobile-responsive
 - **2026-08-21**: BUILD — `galtex-copy-article-sort`

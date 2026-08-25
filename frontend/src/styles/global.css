@@ -788,6 +788,25 @@ select {
   gap: 12px;
 }
 
+.stickers-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stickers-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--label-secondary);
+  line-height: 1.45;
+}
+
+.stickers-hint a {
+  color: var(--system-blue);
+}
+
 .orders-fabric-type-filters {
   display: flex;
   flex-wrap: wrap;
@@ -1379,6 +1398,15 @@ select {
   }
 
   .orders-actions .clay-btn {
+    width: 100%;
+  }
+
+  .stickers-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stickers-actions .clay-btn {
     width: 100%;
   }
 

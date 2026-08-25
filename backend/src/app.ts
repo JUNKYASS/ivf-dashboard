@@ -12,7 +12,11 @@ export function createApp() {
   initStorage();
 
   const app = express();
-  app.use(cors());
+  app.use(
+    cors({
+      exposedHeaders: ['X-Stickers-Count', 'X-Stickers-Skipped', 'Content-Disposition'],
+    }),
+  );
   app.use(express.json());
   // app.use(createAuthMiddleware());
 

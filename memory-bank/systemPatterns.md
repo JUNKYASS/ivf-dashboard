@@ -39,5 +39,5 @@ Middleware `errorHandler` в backend; frontend показывает статус
 
 ## Известные отклонения от ТЗ
 - Auth middleware закомментирован в `app.ts` (dev-удобство)
-- Страница `/stickers` — заглушка, не описана в исходных ТЗ
+- Страница `/stickers` — этикетки Ozon/WB 58×40 с артикулом МП
 - README в корне частично устарел (нет marketplace API)

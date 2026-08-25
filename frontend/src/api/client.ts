@@ -85,6 +85,33 @@ export const api = {
     request<OzonProductCacheStatus>('/api/marketplace/ozon-products/sync', {
       method: 'POST',
     }),
+
+  generateStickers: async (marketplace: 'ozon' | 'wb') => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 180_000);
+
+    try {
+      const response = await fetch(`/api/marketplace/stickers/${marketplace}`, {
+        method: 'POST',
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `HTTP ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const count = Number(response.headers.get('X-Stickers-Count') ?? '0');
+      const skippedRaw = response.headers.get('X-Stickers-Skipped') ?? '';
+      const skipped = skippedRaw ? skippedRaw.split(',').filter(Boolean) : [];
+      const objectUrl = URL.createObjectURL(blob);
+      triggerDownload(objectUrl, `${marketplace}-labels.pdf`);
+      URL.revokeObjectURL(objectUrl);
+      return { count, skipped };
+    } finally {
+      window.clearTimeout(timer);
+    }
+  },
 };
 
 export function triggerDownload(url: string, filename: string) {

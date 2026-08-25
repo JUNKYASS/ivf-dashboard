@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "test": "tsx --test src/services/labelPdfService.test.ts src/services/wbLabelsService.test.ts",
     "start": "cross-env NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "express-basic-auth": "^1.2.1",
     "fast-xml-parser": "^5.2.3",
     "multer": "^2.0.1",
+    "pdf-lib": "^1.17.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

@@ -11,6 +11,7 @@ import {
   syncOzonProductCache,
 } from '../services/ozonProductCacheService';
 import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
+import { generateStickers, StickersError } from '../services/stickersService';
 import {
   getWarehouseStockStatus,
   saveWarehouseStock,
@@ -98,6 +99,29 @@ router.post('/marketplace/orders/fetch', async (_req, res, next) => {
   } catch (error) {
     if (error instanceof Error && error.message.includes('Mapping-файл не загружен')) {
       res.status(400).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+router.post('/marketplace/stickers/:marketplace', async (req, res, next) => {
+  const marketplace = req.params.marketplace;
+  if (marketplace !== 'ozon' && marketplace !== 'wb') {
+    res.status(400).json({ error: 'Неизвестный маркетплейс' });
+    return;
+  }
+
+  try {
+    const result = await generateStickers(marketplace);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${marketplace}-labels.pdf"`);
+    res.setHeader('X-Stickers-Count', String(result.count));
+    res.setHeader('X-Stickers-Skipped', result.skipped.join(','));
+    res.send(Buffer.from(result.pdfBytes));
+  } catch (error) {
+    if (error instanceof StickersError) {
+      res.status(error.status).json({ error: error.message });
       return;
     }
     next(error);

@@ -6,7 +6,7 @@
 |------|------------|
 | Frontend | React 18, TypeScript, Vite, React Router |
 | Backend | Express, TypeScript, Node.js 20+ |
-| Данные | XLSX (SheetJS), fast-xml-parser |
+| Данные | XLSX (SheetJS), fast-xml-parser, pdf-lib |
 | HTTP | axios |
 | Деплой | Docker, docker-compose, nginx |
 
@@ -45,7 +45,10 @@ ivf-dashboard/
 - `GET /api/config/marketplace-api`
 - `POST /api/config/marketplace-api`
 - `POST /api/marketplace/wb-titles/sync`
+- `POST /api/marketplace/ozon-products/sync`
 - `POST /api/marketplace/orders/fetch`
+- `POST /api/marketplace/stickers/ozon` — PDF этикеток FBS awaiting_deliver
+- `POST /api/marketplace/stickers/wb` — PDF стикеров WB confirm
 
 ## Хранилище (runtime)
 - `backend/storage/mapping.xlsx` — загруженный mapping

@@ -12,7 +12,7 @@ docs/
 ├── features/           # Документация по страницам
 │   ├── parser.md       # (TODO)
 │   ├── orders.md       # (TODO)
-│   └── stickers.md     # (TODO)
+│   └── stickers.md     # Генерация этикеток 58×40
 ├── decisions/          # ADR — архитектурные решения
 └── specs/              # Архив исходных ТЗ
     ├── parser-spec-v1.md
