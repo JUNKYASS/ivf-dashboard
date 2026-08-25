@@ -1,10 +1,13 @@
 # Memory Bank: Active Context
 
 ## Текущий фокус
-Нет активной задачи.
+`copy-articles-clipboard-color` — Level 1 BUILD done. Ждёт вставку в Word.
 
 ## Режим
-Готов к **`/van`**.
+BUILD complete
+
+## Фикс
+`copyToClipboard.ts` форсирует чёрный текст + transparent bg в HTML буфера, чтобы dark mode UI не сериализовался в Word.
 
 ## Последнее завершённое
 `orders-product-images` — `memory-bank/archive/archive-orders-product-images.md`
