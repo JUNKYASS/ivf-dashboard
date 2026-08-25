@@ -1,6 +1,8 @@
 import type { WarehouseStockStatus } from '../types';
 
 const STORAGE_KEY = 'ivf-warehouse-stock-status';
+const ENABLED_KEY = 'ivf-warehouse-stock-enabled';
+export const WAREHOUSE_STOCK_ENABLED_CHANGE_EVENT = 'warehouse-stock-enabled-change';
 
 export function readStoredWarehouseStockStatus(): WarehouseStockStatus | null {
   try {
@@ -34,4 +36,23 @@ export function getWarehouseStockMetaLine(status: WarehouseStockStatus | null): 
 
   const { originalFileName, entryCount, uploadedAt } = status.file;
   return `Остатки: ${originalFileName} · ${entryCount} поз. · ${new Date(uploadedAt).toLocaleString('ru-RU')}`;
+}
+
+export function readStoredWarehouseStockEnabled(): boolean {
+  try {
+    const raw = sessionStorage.getItem(ENABLED_KEY);
+    if (raw === null) return true;
+    return raw === 'true';
+  } catch {
+    return true;
+  }
+}
+
+export function storeWarehouseStockEnabled(enabled: boolean): void {
+  try {
+    sessionStorage.setItem(ENABLED_KEY, String(enabled));
+    window.dispatchEvent(new Event(WAREHOUSE_STOCK_ENABLED_CHANGE_EVENT));
+  } catch {
+    // ignore storage errors
+  }
 }

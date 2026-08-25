@@ -37,19 +37,15 @@ function WarehouseStockStatusLine({ status }: { status: WarehouseStockStatus | n
 }
 
 function buildSummary(
-  configuredCount: number,
   warehouseStockEnabled: boolean,
   warehouseStatus: WarehouseStockStatus | null,
 ): string {
-  const keysPart = `Ключи: ${configuredCount}/3`;
   if (!warehouseStockEnabled) {
-    return `${keysPart} · Склад: выкл`;
+    return 'Склад: выкл';
   }
 
   const entryCount = warehouseStatus?.file?.entryCount;
-  const warehousePart =
-    entryCount !== undefined ? `Склад: вкл · ${entryCount} поз.` : 'Склад: вкл';
-  return `${keysPart} · ${warehousePart}`;
+  return entryCount !== undefined ? `Склад: вкл · ${entryCount} поз.` : 'Склад: вкл';
 }
 
 export function OrdersSettingsBlock({
@@ -62,11 +58,6 @@ export function OrdersSettingsBlock({
   warehouseUploading,
   onWarehouseFileChange,
 }: Props) {
-  const [ozonClientId, setOzonClientId] = useState('');
-  const [ozonApiKey, setOzonApiKey] = useState('');
-  const [wbApiToken, setWbApiToken] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [syncingTitles, setSyncingTitles] = useState(false);
   const [titlesCache, setTitlesCache] = useState<WbTitlesCacheStatus | null>(config?.wbTitlesCache ?? null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
@@ -87,35 +78,6 @@ export function OrdersSettingsBlock({
       setOzonProductCache(config.ozonProductCache);
     }
   }, [config?.ozonProductCache]);
-
-  const configuredCount = [
-    config?.ozon.clientIdConfigured,
-    config?.ozon.apiKeyConfigured,
-    config?.wb.apiTokenConfigured,
-  ].filter(Boolean).length;
-
-  const handleSave = async () => {
-    if (!ozonClientId && !ozonApiKey && !wbApiToken) return;
-
-    setSaving(true);
-    setSaved(false);
-    try {
-      const data = await api.saveMarketplaceApiConfig({
-        ozonClientId: ozonClientId || undefined,
-        ozonApiKey: ozonApiKey || undefined,
-        wbApiToken: wbApiToken || undefined,
-      });
-      setOzonClientId('');
-      setOzonApiKey('');
-      setWbApiToken('');
-      setSaved(true);
-      setTitlesCache(data.wbTitlesCache);
-      setOzonProductCache(data.ozonProductCache);
-      onConfigChange(data);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleSyncTitles = async () => {
     setSyncingTitles(true);
@@ -154,74 +116,8 @@ export function OrdersSettingsBlock({
   return (
     <CollapsibleSection
       title="Настройки обработки заказов"
-      summary={buildSummary(configuredCount, warehouseStockEnabled, warehouseStatus)}
+      summary={buildSummary(warehouseStockEnabled, warehouseStatus)}
     >
-      <h3 className="orders-settings-subtitle">API маркетплейсов</h3>
-      <div className="marketplace-api-grid">
-        <div className="field">
-          <label htmlFor="ozon-client-id">Ozon Client-Id</label>
-          <input
-            id="ozon-client-id"
-            className="clay-input"
-            type="password"
-            autoComplete="off"
-            placeholder={
-              config?.ozon.clientIdConfigured
-                ? `Сохранён (${config.ozon.clientIdMask})`
-                : 'Введите Client-Id'
-            }
-            value={ozonClientId}
-            onChange={(e) => setOzonClientId(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="ozon-api-key">Ozon Api-Key</label>
-          <input
-            id="ozon-api-key"
-            className="clay-input"
-            type="password"
-            autoComplete="off"
-            placeholder={
-              config?.ozon.apiKeyConfigured
-                ? `Сохранён (${config.ozon.apiKeyMask})`
-                : 'Введите Api-Key'
-            }
-            value={ozonApiKey}
-            onChange={(e) => setOzonApiKey(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="wb-api-token">WB API Token</label>
-          <input
-            id="wb-api-token"
-            className="clay-input"
-            type="password"
-            autoComplete="off"
-            placeholder={
-              config?.wb.apiTokenConfigured
-                ? `Сохранён (${config.wb.apiTokenMask})`
-                : 'Введите токен'
-            }
-            value={wbApiToken}
-            onChange={(e) => setWbApiToken(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="marketplace-api-actions">
-        <button
-          type="button"
-          className="clay-btn"
-          disabled={saving || (!ozonClientId && !ozonApiKey && !wbApiToken)}
-          onClick={() => void handleSave()}
-        >
-          {saving ? 'Сохранение...' : 'Сохранить ключи'}
-        </button>
-        {saved && <span className="save-hint">Ключи сохранены в .env</span>}
-      </div>
-
-      <div className="orders-settings-divider" />
-
       <h3 className="orders-settings-subtitle">Кэш товаров WB</h3>
       <div className="wb-titles-cache-block wb-titles-cache-block-nested">
         <p className="wb-titles-cache-meta">

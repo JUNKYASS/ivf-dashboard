@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ParserPage } from './pages/ParserPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { StickersPage } from './pages/StickersPage';
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/parser" element={<ParserPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/stickers" element={<StickersPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );

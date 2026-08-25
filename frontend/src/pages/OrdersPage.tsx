@@ -1,21 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import { OrdersSettingsBlock } from '../components/OrdersSettingsBlock';
 import { OrderSupplierGroup } from '../components/OrderSupplierGroup';
-import type {
-  FabricSaleType,
-  MarketplaceApiPublicConfig,
-  OrdersFetchResponse,
-  WarehouseStockStatus,
-} from '../types';
+import type { FabricSaleType, OrdersFetchResponse } from '../types';
 import {
   FABRIC_SUPPLIER_FILTERS,
   resolveFilteredOrdersView,
 } from '../utils/orderSupplierFilters';
-import { applyWarehouseStock } from '../utils/warehouseStock';
 import {
-  readStoredWarehouseStockStatus,
-  storeWarehouseStockStatus,
+  readStoredWarehouseStockEnabled,
+  WAREHOUSE_STOCK_ENABLED_CHANGE_EVENT,
 } from '../utils/warehouseStockDisplay';
 
 function MarketplaceStatusLine({
@@ -41,58 +34,24 @@ function MarketplaceStatusLine({
 }
 
 export function OrdersPage() {
-  const [apiConfig, setApiConfig] = useState<MarketplaceApiPublicConfig | null>(null);
-  const [warehouseStockEnabled, setWarehouseStockEnabled] = useState(true);
-  const [warehouseStatus, setWarehouseStatus] = useState<WarehouseStockStatus | null>(
-    readStoredWarehouseStockStatus,
-  );
-  const [warehouseFile, setWarehouseFile] = useState<File | null>(null);
-  const [warehouseUploading, setWarehouseUploading] = useState(false);
+  const [warehouseStockEnabled, setWarehouseStockEnabled] = useState(readStoredWarehouseStockEnabled);
   const [ordersData, setOrdersData] = useState<OrdersFetchResponse | null>(null);
   const [fabricTypeFilter, setFabricTypeFilter] = useState<FabricSaleType | null>(null);
   const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadApiConfig = useCallback(async () => {
-    const data = await api.getMarketplaceApiConfig();
-    setApiConfig(data);
-  }, []);
-
-  const loadWarehouseStatus = useCallback(async () => {
-    const data = await api.getWarehouseStockStatus();
-    setWarehouseStatus(data);
-    storeWarehouseStockStatus(data);
-  }, []);
-
   useEffect(() => {
-    void loadApiConfig().catch((err: Error) => setError(err.message));
-    void loadWarehouseStatus().catch((err: Error) => setError(err.message));
-  }, [loadApiConfig, loadWarehouseStatus]);
+    const syncEnabled = () => setWarehouseStockEnabled(readStoredWarehouseStockEnabled());
 
-  const handleWarehouseFileChange = async (file: File | null) => {
-    setWarehouseFile(file);
-    if (!file) return;
+    window.addEventListener(WAREHOUSE_STOCK_ENABLED_CHANGE_EVENT, syncEnabled);
+    window.addEventListener('storage', syncEnabled);
 
-    setWarehouseUploading(true);
-    setError(null);
-
-    try {
-      const result = await api.uploadWarehouseStock(file);
-      const nextStatus: WarehouseStockStatus = { exists: true, file: result.file };
-      setWarehouseStatus(nextStatus);
-      storeWarehouseStockStatus(nextStatus);
-      setWarehouseFile(null);
-      if (ordersData) {
-        setOrdersData(applyWarehouseStock(ordersData, result.stockByArticle));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки файла остатков');
-      setWarehouseFile(null);
-    } finally {
-      setWarehouseUploading(false);
-    }
-  };
+    return () => {
+      window.removeEventListener(WAREHOUSE_STOCK_ENABLED_CHANGE_EVENT, syncEnabled);
+      window.removeEventListener('storage', syncEnabled);
+    };
+  }, []);
 
   const handleFetchOrders = async () => {
     setLoading(true);
@@ -125,17 +84,6 @@ export function OrdersPage() {
   return (
     <div>
       <h1 className="page-title">Обработка заказов</h1>
-
-      <OrdersSettingsBlock
-        config={apiConfig}
-        onConfigChange={setApiConfig}
-        warehouseStockEnabled={warehouseStockEnabled}
-        onWarehouseStockEnabledChange={setWarehouseStockEnabled}
-        warehouseStatus={warehouseStatus}
-        warehouseFile={warehouseFile}
-        warehouseUploading={warehouseUploading}
-        onWarehouseFileChange={(file) => void handleWarehouseFileChange(file)}
-      />
 
       <section className="section clay-card orders-actions">
         <button type="button" className="clay-btn" disabled={loading} onClick={() => void handleFetchOrders()}>

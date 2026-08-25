@@ -1,9 +1,7 @@
 import { api, triggerDownload } from '../api/client';
 import { GaltexCard } from '../components/GaltexCard';
-import { MappingBlock } from '../components/MappingBlock';
 import { SupplierCard } from '../components/SupplierCard';
 import { TexdesignCard } from '../components/TexdesignCard';
-import { ThresholdsBlock } from '../components/ThresholdsBlock';
 import type { AppConfig, GenerateResponse, SupplierResult } from '../types';
 import { FILE_SUPPLIERS, GALTEX_MATERIALS } from '../types';
 import { useCallback, useEffect, useState } from 'react';
@@ -27,16 +25,6 @@ export function ParserPage() {
   useEffect(() => {
     void loadConfig().catch((err: Error) => setError(err.message));
   }, [loadConfig]);
-
-  const handleMappingUpload = async (file: File) => {
-    const data = await api.uploadMapping(file);
-    setConfig(data);
-  };
-
-  const handleThresholdSave = async (key: string, threshold: number, remain: number) => {
-    const data = await api.saveThreshold(key, threshold, remain);
-    setConfig(data);
-  };
 
   const handleTexdesignUrlBlur = async () => {
     if (!config || texdesignUrl === config.texdesignUrl) return;
@@ -116,18 +104,6 @@ export function ParserPage() {
   return (
     <div>
       <h1 className="page-title">Парсер остатков</h1>
-
-      <MappingBlock
-        mappingFile={config.mappingFile}
-        hasMapping={config.hasMapping}
-        onUpload={handleMappingUpload}
-      />
-
-      <ThresholdsBlock
-        thresholds={config.thresholds}
-        galtexThreshold={config.galtexThreshold}
-        onSave={handleThresholdSave}
-      />
 
       <GaltexCard
         files={files}
