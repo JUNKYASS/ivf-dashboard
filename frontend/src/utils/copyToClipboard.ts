@@ -3,19 +3,17 @@ export type ClipboardPayload = {
   html?: string;
 };
 
-/** Явные стили, чтобы dark mode страницы не уезжал в Word/Excel как белый текст на чёрном фоне. */
-const CLIPBOARD_PASTE_STYLE =
-  'color:#000000;background-color:transparent;-webkit-text-fill-color:#000000;color-scheme:light;mso-highlight:none;';
+/** Только цвет текста — без background, иначе Word/Excel тащат highlight или чёрный фон страницы. */
+const CLIPBOARD_TEXT_COLOR = '#000000';
 
 function styledClipboardFragment(html: string): string {
-  const withStyledBold = html.replaceAll('<b>', `<b style="${CLIPBOARD_PASTE_STYLE}">`);
-  return `<span style="${CLIPBOARD_PASTE_STYLE}">${withStyledBold}</span>`;
+  return `<span style="color:${CLIPBOARD_TEXT_COLOR}">${html}</span>`;
 }
 
 function toClipboardHtmlDocument(html: string): string {
   return (
     `<html><head><meta charset="utf-8"></head>` +
-    `<body style="${CLIPBOARD_PASTE_STYLE}">` +
+    `<body>` +
     `<!--StartFragment-->${styledClipboardFragment(html)}<!--EndFragment-->` +
     `</body></html>`
   );
@@ -36,27 +34,38 @@ function copyPlainText(text: string): boolean {
 }
 
 function copyRichTextFallback(text: string, html: string): boolean {
-  const container = document.createElement('div');
-  container.contentEditable = 'true';
-  container.innerHTML = styledClipboardFragment(html);
-  container.setAttribute('readonly', '');
-  container.style.position = 'fixed';
-  container.style.left = '-9999px';
-  container.style.color = '#000000';
-  container.style.backgroundColor = 'transparent';
-  container.style.colorScheme = 'light';
-  container.style.webkitTextFillColor = '#000000';
-  document.body.appendChild(container);
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.position = 'fixed';
+  iframe.style.left = '-9999px';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
 
-  const selection = window.getSelection();
-  const range = document.createRange();
-  range.selectNodeContents(container);
+  const doc = iframe.contentDocument;
+  if (!doc) {
+    document.body.removeChild(iframe);
+    return copyPlainText(text);
+  }
+
+  doc.open();
+  doc.write('<!DOCTYPE html><html><body></body></html>');
+  doc.close();
+
+  const span = doc.createElement('span');
+  span.style.color = CLIPBOARD_TEXT_COLOR;
+  span.innerHTML = html;
+  doc.body.appendChild(span);
+
+  const selection = doc.getSelection();
+  const range = doc.createRange();
+  range.selectNodeContents(span);
   selection?.removeAllRanges();
   selection?.addRange(range);
 
-  const copied = document.execCommand('copy');
-  document.body.removeChild(container);
-  selection?.removeAllRanges();
+  const copied = doc.execCommand('copy');
+  document.body.removeChild(iframe);
 
   if (!copied) {
     return copyPlainText(text);
