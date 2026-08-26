@@ -124,7 +124,7 @@ function escapeHtml(text: string): string {
 }
 
 function boldHtml(text: string): string {
-  return `<b>${escapeHtml(text)}</b>`;
+  return `<span style="font-weight:700">${escapeHtml(text)}</span>`;
 }
 
 export type FormattedCopyLine = {

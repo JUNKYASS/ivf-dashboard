@@ -33,39 +33,43 @@ function copyPlainText(text: string): boolean {
   return copied;
 }
 
+/**
+ * HTTP / non-secure context: navigator.clipboard.write недоступен.
+ * Явно пишем text/html в copy-event — иначе execCommand копирует только plain text.
+ */
 function copyRichTextFallback(text: string, html: string): boolean {
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.style.position = 'fixed';
-  iframe.style.left = '-9999px';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
+  const container = document.createElement('div');
+  container.contentEditable = 'true';
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.opacity = '0';
+  container.textContent = text;
+  document.body.appendChild(container);
 
-  const doc = iframe.contentDocument;
-  if (!doc) {
-    document.body.removeChild(iframe);
+  const selection = window.getSelection();
+  if (!selection) {
+    document.body.removeChild(container);
     return copyPlainText(text);
   }
 
-  doc.open();
-  doc.write('<!DOCTYPE html><html><body></body></html>');
-  doc.close();
+  const range = document.createRange();
+  range.selectNodeContents(container);
+  selection.removeAllRanges();
+  selection.addRange(range);
 
-  const span = doc.createElement('span');
-  span.style.color = CLIPBOARD_TEXT_COLOR;
-  span.innerHTML = html;
-  doc.body.appendChild(span);
+  const htmlPayload = toClipboardHtmlDocument(html);
 
-  const selection = doc.getSelection();
-  const range = doc.createRange();
-  range.selectNodeContents(span);
-  selection?.removeAllRanges();
-  selection?.addRange(range);
+  const onCopy = (event: ClipboardEvent) => {
+    event.clipboardData?.setData('text/plain', text);
+    event.clipboardData?.setData('text/html', htmlPayload);
+    event.preventDefault();
+  };
 
-  const copied = doc.execCommand('copy');
-  document.body.removeChild(iframe);
+  document.addEventListener('copy', onCopy);
+  const copied = document.execCommand('copy');
+  document.removeEventListener('copy', onCopy);
+  selection.removeAllRanges();
+  document.body.removeChild(container);
 
   if (!copied) {
     return copyPlainText(text);
@@ -87,7 +91,7 @@ export async function copyToClipboard(payload: string | ClipboardPayload): Promi
       await navigator.clipboard.write([
         new ClipboardItem({
           'text/plain': new Blob([text], { type: 'text/plain' }),
-          'text/html': new Blob([toClipboardHtmlDocument(html)], { type: 'text/html' }),
+          'text/html': new Blob([toClipboardHtmlDocument(html)], { type: 'text/html;charset=utf-8' }),
         }),
       ]);
       return;
