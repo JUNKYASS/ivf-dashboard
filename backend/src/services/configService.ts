@@ -48,6 +48,7 @@ function seedMappingFromRoot(): void {
 function createDefaultConfig(): AppConfig {
   return {
     texdesignUrl: DEFAULT_TEXDESIGN_URL,
+    texdesignEnabled: true,
     thresholds: { ...DEFAULT_THRESHOLDS },
     mappingFile: fs.existsSync(MAPPING_PATH)
       ? {
@@ -95,6 +96,13 @@ export function updateTexdesignUrl(url: string): AppConfig {
   return config;
 }
 
+export function updateTexdesignEnabled(enabled: boolean): AppConfig {
+  const config = readConfig();
+  config.texdesignEnabled = enabled;
+  writeConfig(config);
+  return config;
+}
+
 export function updateThreshold(key: string, value: ThresholdValue): AppConfig {
   const config = readConfig();
 
@@ -121,18 +129,36 @@ export function updateMappingMeta(originalFileName: string): AppConfig {
   return config;
 }
 
+export function getOutputStatus() {
+  const ozonPath = path.join(OUTPUT_DIR, 'ozon-stocks.xlsx');
+  const wbPath = path.join(OUTPUT_DIR, 'wb-stocks.xlsx');
+  const hasOzon = fs.existsSync(ozonPath);
+  const hasWb = fs.existsSync(wbPath);
+
+  let outputGeneratedAt: string | null = null;
+  if (hasOzon) {
+    outputGeneratedAt = fs.statSync(ozonPath).mtime.toISOString();
+  } else if (hasWb) {
+    outputGeneratedAt = fs.statSync(wbPath).mtime.toISOString();
+  }
+
+  return {
+    hasOutput: { ozon: hasOzon, wb: hasWb },
+    outputGeneratedAt,
+  };
+}
+
 export function getPublicConfig(config: AppConfig) {
   const firstGaltex = config.thresholds[GALTEX_THRESHOLD_KEYS[0]];
+  const outputStatus = getOutputStatus();
 
   return {
     texdesignUrl: config.texdesignUrl,
+    texdesignEnabled: config.texdesignEnabled,
     thresholds: config.thresholds,
     galtexThreshold: firstGaltex,
     mappingFile: config.mappingFile,
     hasMapping: fs.existsSync(MAPPING_PATH),
-    hasOutput: {
-      ozon: fs.existsSync(path.join(OUTPUT_DIR, 'ozon-stocks.xlsx')),
-      wb: fs.existsSync(path.join(OUTPUT_DIR, 'wb-stocks.xlsx')),
-    },
+    ...outputStatus,
   };
 }

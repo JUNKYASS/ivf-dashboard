@@ -10,7 +10,7 @@ import {
   SupplierResult,
   WB_OUTPUT_PATH,
 } from '../types';
-import { readConfig } from './configService';
+import { getOutputStatus, readConfig } from './configService';
 import { parseArtdesignStocks } from './parsers/artdesign';
 import { parseGaltexStocks } from './parsers/galtex';
 import { parseLogosStocks } from './parsers/logos';
@@ -99,19 +99,23 @@ export async function runGeneration(files: UploadedFiles) {
     suppliers.galtex = { status: 'skipped', message: 'Файл не загружен', galtexSlots };
   }
 
-  const texdesignUrl = config.texdesignUrl?.trim();
-  if (!texdesignUrl) {
-    suppliers.td = { status: 'skipped', message: 'URL не задан' };
+  if (!config.texdesignEnabled) {
+    suppliers.td = { status: 'skipped', message: 'Отключён' };
   } else {
-    try {
-      const data = await parseTexdesignStocks(texdesignUrl, MAPPING_PATH, config.thresholds.td);
-      allStockRows.push(...data);
-      suppliers.td = { status: 'success', count: data.length };
-    } catch (error) {
-      suppliers.td = {
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Неизвестная ошибка',
-      };
+    const texdesignUrl = config.texdesignUrl?.trim();
+    if (!texdesignUrl) {
+      suppliers.td = { status: 'skipped', message: 'URL не задан' };
+    } else {
+      try {
+        const data = await parseTexdesignStocks(texdesignUrl, MAPPING_PATH, config.thresholds.td);
+        allStockRows.push(...data);
+        suppliers.td = { status: 'success', count: data.length };
+      } catch (error) {
+        suppliers.td = {
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Неизвестная ошибка',
+        };
+      }
     }
   }
 
@@ -153,11 +157,14 @@ export async function runGeneration(files: UploadedFiles) {
     writeOutputFiles(ozonRows, wbRows, OZON_OUTPUT_PATH, WB_OUTPUT_PATH);
   }
 
+  const outputStatus = getOutputStatus();
+
   return {
     suppliers,
     files: {
       ozon: hasAnySuccess && allStockRows.length > 0 ? 'ozon-stocks.xlsx' : null,
       wb: hasAnySuccess && allStockRows.length > 0 ? 'wb-stocks.xlsx' : null,
     },
+    ...outputStatus,
   };
 }

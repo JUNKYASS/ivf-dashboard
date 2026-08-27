@@ -1,5 +1,6 @@
 {
   "texdesignUrl": "https://texdesign.ru/bitrix/catalog_export/cloth.xml",
+  "texdesignEnabled": true,
   "thresholds": {
     "galtex_gt_byaz_220_120": {
       "threshold": 400,

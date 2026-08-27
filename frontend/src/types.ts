@@ -11,6 +11,7 @@ export type MappingFileInfo = {
 
 export type AppConfig = {
   texdesignUrl: string;
+  texdesignEnabled: boolean;
   thresholds: Record<string, ThresholdValue>;
   galtexThreshold: ThresholdValue;
   mappingFile: MappingFileInfo;
@@ -19,6 +20,7 @@ export type AppConfig = {
     ozon: boolean;
     wb: boolean;
   };
+  outputGeneratedAt: string | null;
 };
 
 export type SupplierStatus = 'pending' | 'skipped' | 'processing' | 'success' | 'error';
@@ -44,6 +46,11 @@ export type GenerateResponse = {
     ozon: string | null;
     wb: string | null;
   };
+  hasOutput: {
+    ozon: boolean;
+    wb: boolean;
+  };
+  outputGeneratedAt: string | null;
 };
 
 export const GALTEX_MATERIALS = [

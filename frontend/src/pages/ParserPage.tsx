@@ -1,4 +1,4 @@
-import { api, triggerDownload } from '../api/client';
+import { api } from '../api/client';
 import { GaltexCard } from '../components/GaltexCard';
 import { SupplierCard } from '../components/SupplierCard';
 import { TexdesignCard } from '../components/TexdesignCard';
@@ -9,17 +9,27 @@ import { useCallback, useEffect, useState } from 'react';
 export function ParserPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [texdesignUrl, setTexdesignUrl] = useState('');
+  const [texdesignEnabled, setTexdesignEnabled] = useState(true);
   const [files, setFiles] = useState<Record<string, File | null>>({});
   const [generating, setGenerating] = useState(false);
   const [results, setResults] = useState<Record<string, SupplierResult>>({});
   const [hasOutput, setHasOutput] = useState({ ozon: false, wb: false });
+  const [outputGeneratedAt, setOutputGeneratedAt] = useState<string | null>(null);
+  const [downloadPanelShimmer, setDownloadPanelShimmer] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const triggerDownloadPanelShimmer = useCallback(() => {
+    setDownloadPanelShimmer(false);
+    requestAnimationFrame(() => setDownloadPanelShimmer(true));
+  }, []);
 
   const loadConfig = useCallback(async () => {
     const data = await api.getConfig();
     setConfig(data);
     setTexdesignUrl(data.texdesignUrl);
+    setTexdesignEnabled(data.texdesignEnabled);
     setHasOutput(data.hasOutput);
+    setOutputGeneratedAt(data.outputGeneratedAt);
   }, []);
 
   useEffect(() => {
@@ -30,6 +40,18 @@ export function ParserPage() {
     if (!config || texdesignUrl === config.texdesignUrl) return;
     const data = await api.saveTexdesignUrl(texdesignUrl);
     setConfig(data);
+  };
+
+  const handleTexdesignEnabledChange = async (enabled: boolean) => {
+    setTexdesignEnabled(enabled);
+    if (!config || enabled === config.texdesignEnabled) return;
+    try {
+      const data = await api.saveTexdesignEnabled(enabled);
+      setConfig(data);
+    } catch (err) {
+      setTexdesignEnabled(config.texdesignEnabled);
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения');
+    }
   };
 
   const handleFileChange = (key: string, file: File | null) => {
@@ -50,7 +72,7 @@ export function ParserPage() {
     if (GALTEX_MATERIALS.some((m) => files[m.key])) {
       processingState.galtex = { status: 'processing' };
     }
-    if (texdesignUrl.trim()) {
+    if (texdesignEnabled && texdesignUrl.trim()) {
       processingState.td = { status: 'processing' };
     }
     for (const supplier of FILE_SUPPLIERS) {
@@ -83,7 +105,9 @@ export function ParserPage() {
       // }
 
       if (response.files.ozon) {
-        setHasOutput({ ozon: true, wb: true });
+        setHasOutput(response.hasOutput);
+        setOutputGeneratedAt(response.outputGeneratedAt);
+        triggerDownloadPanelShimmer();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка генерации');
@@ -127,28 +151,58 @@ export function ParserPage() {
 
         <TexdesignCard
           url={texdesignUrl}
+          enabled={texdesignEnabled}
           result={results.td}
           generating={generating}
           onUrlChange={setTexdesignUrl}
           onUrlBlur={() => void handleTexdesignUrlBlur()}
+          onEnabledChange={(enabled) => void handleTexdesignEnabledChange(enabled)}
         />
       </div>
 
       <section className="section clay-card generate-block">
-        <button className="clay-btn" onClick={() => void handleGenerate()} disabled={generating}>
+        <button
+          type="button"
+          className={`clay-btn generate-block-btn${generating ? ' is-loading' : ''}`}
+          onClick={() => void handleGenerate()}
+          disabled={generating}
+        >
           {generating ? (
-            <span className="loading-row">
-              <span className="spinner" /> Генерация...
-            </span>
+            <>
+              <span className="spinner" aria-hidden />
+              <span>Генерация...</span>
+            </>
           ) : (
             'Сгенерировать файлы остатков'
           )}
         </button>
 
-        {hasOutput.ozon && (
-          <div className="download-links">
-            <a href={api.downloadUrl('ozon')}>Скачать ozon-stocks.xlsx</a>
-            {hasOutput.wb && <a href={api.downloadUrl('wb')}>Скачать wb-stocks.xlsx</a>}
+        {(hasOutput.ozon || hasOutput.wb) && (
+          <div
+            className={`output-download-panel${downloadPanelShimmer ? ' is-shimmering' : ''}`}
+            onAnimationEnd={(event) => {
+              if (event.animationName === 'output-download-shine') {
+                setDownloadPanelShimmer(false);
+              }
+            }}
+          >
+            <p className="output-download-meta">
+              {outputGeneratedAt
+                ? `Последняя генерация: ${new Date(outputGeneratedAt).toLocaleString('ru-RU')}`
+                : 'Файлы остатков доступны для скачивания'}
+            </p>
+            <div className="output-download-actions">
+              {hasOutput.ozon && (
+                <a className="clay-btn clay-btn-secondary output-download-btn" href={api.downloadUrl('ozon')}>
+                  Ozon · ozon-stocks.xlsx
+                </a>
+              )}
+              {hasOutput.wb && (
+                <a className="clay-btn clay-btn-secondary output-download-btn" href={api.downloadUrl('wb')}>
+                  WB · wb-stocks.xlsx
+                </a>
+              )}
+            </div>
           </div>
         )}
 

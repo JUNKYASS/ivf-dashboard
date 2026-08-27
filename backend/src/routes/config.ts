@@ -7,6 +7,7 @@ import {
   readConfig,
   updateMappingMeta,
   updateTexdesignUrl,
+  updateTexdesignEnabled,
   updateThreshold,
 } from '../services/configService';
 import { MAPPING_PATH } from '../types';
@@ -39,6 +40,16 @@ router.post('/config/texdesign-url', (req, res) => {
     return;
   }
   const config = updateTexdesignUrl(url.trim());
+  res.json(getPublicConfig(config));
+});
+
+router.post('/config/texdesign-enabled', (req, res) => {
+  const { enabled } = req.body as { enabled?: boolean };
+  if (typeof enabled !== 'boolean') {
+    res.status(400).json({ error: 'enabled обязателен' });
+    return;
+  }
+  const config = updateTexdesignEnabled(enabled);
   res.json(getPublicConfig(config));
 });
 

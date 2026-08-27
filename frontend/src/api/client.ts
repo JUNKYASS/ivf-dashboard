@@ -34,6 +34,13 @@ export const api = {
       body: JSON.stringify({ url }),
     }),
 
+  saveTexdesignEnabled: (enabled: boolean) =>
+    request<AppConfig>('/api/config/texdesign-enabled', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    }),
+
   saveThreshold: (key: string, threshold: number, remain: number) =>
     request<AppConfig>('/api/config/thresholds', {
       method: 'POST',

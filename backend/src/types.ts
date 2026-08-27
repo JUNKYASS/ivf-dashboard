@@ -13,6 +13,7 @@ export type MappingFileInfo = {
 
 export type AppConfig = {
   texdesignUrl: string;
+  texdesignEnabled: boolean;
   thresholds: Record<string, ThresholdValue>;
   mappingFile: MappingFileInfo;
 };
@@ -59,6 +60,11 @@ export type GenerateResponse = {
     ozon: string | null;
     wb: string | null;
   };
+  hasOutput: {
+    ozon: boolean;
+    wb: boolean;
+  };
+  outputGeneratedAt: string | null;
 };
 
 export type RawOrderLine = {

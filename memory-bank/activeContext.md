@@ -1,11 +1,16 @@
-# Memory Bank: Active Context
+# Active Context
 
-## Текущий фокус
-Нет активной задачи. Memory Bank готов к VAN.
+## Focus
+Parser page generate block UI polish
 
-## Последняя завершённая
-`settings-page-consolidation` — COMPLETED & ARCHIVED 2026-08-25  
-`memory-bank/archive/archive-settings-page-consolidation.md`
+## Changes
+- Download panel with last generation timestamp
+- Secondary button-style download links
+- Generate button: column layout, centered loading state
+- TexdesignCard grayed when disabled
 
-## Припарковано
-`copy-articles-clipboard-color` — untracked `frontend/src/utils/copyToClipboard.ts`
+## Key files
+- `frontend/src/pages/ParserPage.tsx`
+- `frontend/src/styles/global.css`
+- `frontend/src/components/TexdesignCard.tsx`
+- `backend/src/services/configService.ts` — `getOutputStatus()`

@@ -5,13 +5,17 @@ import { TD_SHEETNAME } from '../../constants';
 import type { StockRow, ThresholdValue } from '../../types';
 import { readWorkbookFile, sheetToMatrix } from '../parserUtils';
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const FETCH_TIMEOUT_MS = 10_000;
 
 async function fetchXml(url: string): Promise<string> {
   const agent = new https.Agent({ rejectUnauthorized: false });
 
-  const attempt = async (): Promise<string> => {
-    const response = await axios.get(url, { httpsAgent: agent, responseType: 'text' });
+  try {
+    const response = await axios.get(url, {
+      httpsAgent: agent,
+      responseType: 'text',
+      timeout: FETCH_TIMEOUT_MS,
+    });
     if (response.statusText !== 'OK') {
       throw new Error(`Ошибка загрузки XML: ${response.statusText}`);
     }
@@ -24,17 +28,11 @@ async function fetchXml(url: string): Promise<string> {
       throw new Error('Загруженный XML-файл пустой или повреждён');
     }
     return xmlRawData;
-  };
-
-  try {
-    return await attempt();
-  } catch {
-    await sleep(5000);
-    try {
-      return await attempt();
-    } catch {
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
       throw new Error('Выгрузка по URL недоступна');
     }
+    throw new Error('Выгрузка по URL недоступна');
   }
 }
 
