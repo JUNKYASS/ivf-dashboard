@@ -6,15 +6,106 @@ import {
   formatArticleCaption,
 } from './labelPdfService';
 import {
+  filterUnprinted,
+  pruneMarketplace,
+} from './printedLabelsService';
+import {
   OZON_LABEL_BATCH_SIZE,
   STICKERS_TIMEOUT_MS,
   StickersError,
+  type StickersScope,
   axiosErrorMessage,
   chunk,
   isRetryableLabelError,
   messageFromResponseData,
   sleep,
 } from './stickersShared';
+
+export type OzonStickersResult = {
+  pdfBytes: Uint8Array;
+  count: number;
+  skipped: string[];
+  printedIds: string[];
+};
+
+export async function generateOzonStickers(
+  clientId: string,
+  apiKey: string,
+  scope: StickersScope = 'all',
+): Promise<OzonStickersResult> {
+  const allPostings = await listAwaitingDeliverPostings(clientId, apiKey);
+  if (allPostings.length === 0) {
+    throw new StickersError('Нет отправлений Ozon в статусе «Готово к отгрузке»');
+  }
+
+  pruneMarketplace(
+    'ozon',
+    allPostings.map((posting) => posting.postingNumber),
+  );
+
+  let postings = allPostings;
+  if (scope === 'unprinted') {
+    const unprintedIds = new Set(
+      filterUnprinted(
+        'ozon',
+        allPostings.map((posting) => posting.postingNumber),
+      ),
+    );
+    postings = allPostings.filter((posting) => unprintedIds.has(posting.postingNumber));
+    if (postings.length === 0) {
+      throw new StickersError('Нет нераспечатанных этикеток Ozon');
+    }
+  }
+
+  const { doc, font } = await createLabelsDocument();
+  const skipped: string[] = [];
+  const printedIds: string[] = [];
+
+  for (const batch of chunk(postings, OZON_LABEL_BATCH_SIZE)) {
+    try {
+      const pdfBytes = await fetchPackageLabelPdfWithRetry(
+        clientId,
+        apiKey,
+        batch.map((item) => item.postingNumber),
+      );
+      await appendPdfSource(
+        doc,
+        font,
+        pdfBytes,
+        batch.map((item) => item.caption),
+      );
+      printedIds.push(...batch.map((item) => item.postingNumber));
+    } catch (error) {
+      console.error('Ozon package-label batch failed, retrying singles:', axiosErrorMessage(error));
+      for (const posting of batch) {
+        try {
+          const pdfBytes = await fetchPackageLabelPdfWithRetry(clientId, apiKey, [
+            posting.postingNumber,
+          ]);
+          await appendPdfSource(doc, font, pdfBytes, [posting.caption]);
+          printedIds.push(posting.postingNumber);
+        } catch (singleError) {
+          console.error(
+            `Ozon label skipped ${posting.postingNumber}:`,
+            axiosErrorMessage(singleError),
+          );
+          skipped.push(posting.postingNumber);
+        }
+      }
+    }
+  }
+
+  if (doc.getPageCount() === 0) {
+    throw new StickersError('Не удалось получить этикетки Ozon');
+  }
+
+  return {
+    pdfBytes: await doc.save(),
+    count: doc.getPageCount(),
+    skipped,
+    printedIds,
+  };
+}
 
 type OzonProduct = {
   offer_id?: string;
@@ -38,61 +129,6 @@ type OzonPostingLabel = {
   postingNumber: string;
   caption: string;
 };
-
-export async function generateOzonStickers(
-  clientId: string,
-  apiKey: string,
-): Promise<{ pdfBytes: Uint8Array; count: number; skipped: string[] }> {
-  const postings = await listAwaitingDeliverPostings(clientId, apiKey);
-  if (postings.length === 0) {
-    throw new StickersError('Нет отправлений Ozon в статусе «Готово к отгрузке»');
-  }
-
-  const { doc, font } = await createLabelsDocument();
-  const skipped: string[] = [];
-
-  for (const batch of chunk(postings, OZON_LABEL_BATCH_SIZE)) {
-    try {
-      const pdfBytes = await fetchPackageLabelPdfWithRetry(
-        clientId,
-        apiKey,
-        batch.map((item) => item.postingNumber),
-      );
-      await appendPdfSource(
-        doc,
-        font,
-        pdfBytes,
-        batch.map((item) => item.caption),
-      );
-    } catch (error) {
-      console.error('Ozon package-label batch failed, retrying singles:', axiosErrorMessage(error));
-      for (const posting of batch) {
-        try {
-          const pdfBytes = await fetchPackageLabelPdfWithRetry(clientId, apiKey, [
-            posting.postingNumber,
-          ]);
-          await appendPdfSource(doc, font, pdfBytes, [posting.caption]);
-        } catch (singleError) {
-          console.error(
-            `Ozon label skipped ${posting.postingNumber}:`,
-            axiosErrorMessage(singleError),
-          );
-          skipped.push(posting.postingNumber);
-        }
-      }
-    }
-  }
-
-  if (doc.getPageCount() === 0) {
-    throw new StickersError('Не удалось получить этикетки Ozon');
-  }
-
-  return {
-    pdfBytes: await doc.save(),
-    count: doc.getPageCount(),
-    skipped,
-  };
-}
 
 async function listAwaitingDeliverPostings(
   clientId: string,

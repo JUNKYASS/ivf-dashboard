@@ -6,9 +6,14 @@ import {
   formatArticleCaption,
 } from './labelPdfService';
 import {
+  filterUnprinted,
+  pruneMarketplace,
+} from './printedLabelsService';
+import {
   STICKERS_BATCH_PAUSE_MS,
   STICKERS_TIMEOUT_MS,
   StickersError,
+  type StickersScope,
   WB_STATUS_BATCH_SIZE,
   WB_STICKER_BATCH_SIZE,
   axiosErrorMessage,
@@ -63,11 +68,19 @@ type WbStickersResponse = {
   }>;
 };
 
+export type WbStickersResult = {
+  pdfBytes: Uint8Array;
+  count: number;
+  skipped: string[];
+  printedIds: string[];
+};
+
 export async function generateWbStickers(
   apiToken: string,
-): Promise<{ pdfBytes: Uint8Array; count: number; skipped: string[] }> {
+  scope: StickersScope = 'all',
+): Promise<WbStickersResult> {
   try {
-    return await generateWbStickersUnsafe(apiToken);
+    return await generateWbStickersUnsafe(apiToken, scope);
   } catch (error) {
     if (error instanceof StickersError) throw error;
     throw new StickersError(formatWbError(error));
@@ -76,7 +89,8 @@ export async function generateWbStickers(
 
 async function generateWbStickersUnsafe(
   apiToken: string,
-): Promise<{ pdfBytes: Uint8Array; count: number; skipped: string[] }> {
+  scope: StickersScope,
+): Promise<WbStickersResult> {
   const orders = await listRecentOrders(apiToken);
   if (orders.length === 0) {
     throw new StickersError('Нет заказов WB за последние 30 дней');
@@ -93,22 +107,42 @@ async function generateWbStickersUnsafe(
     throw new StickersError('Нет заказов WB в статусе «на сборке»');
   }
 
+  pruneMarketplace(
+    'wb',
+    confirmOrders.map((order) => String(order.id)),
+  );
+
+  let targetOrders = confirmOrders;
+  if (scope === 'unprinted') {
+    const unprintedIds = new Set(
+      filterUnprinted(
+        'wb',
+        confirmOrders.map((order) => String(order.id)),
+      ),
+    );
+    targetOrders = confirmOrders.filter((order) => unprintedIds.has(String(order.id)));
+    if (targetOrders.length === 0) {
+      throw new StickersError('Нет нераспечатанных этикеток WB');
+    }
+  }
+
   const { doc, font } = await createLabelsDocument();
   const skipped: string[] = [];
+  const printedIds: string[] = [];
   let firstBatch = true;
 
-  for (const batch of chunk(confirmOrders, WB_STICKER_BATCH_SIZE)) {
+  for (const batch of chunk(targetOrders, WB_STICKER_BATCH_SIZE)) {
     if (!firstBatch) await sleep(STICKERS_BATCH_PAUSE_MS);
     firstBatch = false;
 
     try {
-      await appendStickerBatch(doc, font, apiToken, batch, skipped);
+      await appendStickerBatch(doc, font, apiToken, batch, skipped, printedIds);
     } catch (error) {
       console.error('WB stickers batch failed, retrying singles:', axiosErrorMessage(error));
       for (const order of batch) {
         await sleep(STICKERS_BATCH_PAUSE_MS);
         try {
-          await appendStickerBatch(doc, font, apiToken, [order], skipped);
+          await appendStickerBatch(doc, font, apiToken, [order], skipped, printedIds);
         } catch (singleError) {
           console.error(`WB sticker skipped ${order.id}:`, axiosErrorMessage(singleError));
           skipped.push(String(order.id));
@@ -125,6 +159,7 @@ async function generateWbStickersUnsafe(
     pdfBytes: await doc.save(),
     count: doc.getPageCount(),
     skipped,
+    printedIds,
   };
 }
 
@@ -134,6 +169,7 @@ async function appendStickerBatch(
   apiToken: string,
   batch: WbOrderLabel[],
   skipped: string[],
+  printedIds: string[],
 ): Promise<void> {
   const stickers = await fetchStickers(
     apiToken,
@@ -153,6 +189,7 @@ async function appendStickerBatch(
       continue;
     }
     await appendPngSource(doc, font, new Uint8Array(Buffer.from(file, 'base64')), order.caption);
+    printedIds.push(String(order.id));
   }
 }
 

@@ -10,7 +10,7 @@
 | Парсер остатков (`/parser`) | ✅ Готово | Galtex, TD, AD, TDL, Logos, TT; фильтр undefined в Ozon; конфиг вынесен в Settings |
 | Обработка заказов (`/orders`) | ✅ Готово | Ozon + WB, склад, отрез/рулон, фильтры, фото товаров (кэш), mobile; настройки в Settings |
 | Настройки (`/settings`) | ✅ Готово | mapping, пороги, API keys, кэши WB/Ozon, склад |
-| Генерация стикеров (`/stickers`) | ✅ Готово | Level 3 `stickers-label-generation` ARCHIVED; PDF 58×40 + артикул |
+| Генерация стикеров (`/stickers`) | ✅ Готово | 58×40 + артикул; split UI; нераспечатанные (local JSON) |
 | Basic Auth | ⚠️ Отключён | Middleware закомментирован |
 | Docker деплой | ✅ Готово | docker-compose + nginx |
 | Memory Bank | ✅ Инициализирован | 2026-08-09 |
@@ -26,18 +26,19 @@
 - Фото товаров в заказах (кэш WB/Ozon + lightbox)
 - Копирование списков артикулов (с учётом остатков на нашем складе; Galtex natural sort)
 - Загрузка файла остатков нашего склада с персистентным UI
-- Генерация этикеток Ozon/WB 58×40 с артикулом (`/stickers`)
+- Генерация этикеток Ozon/WB 58×40: все / нераспечатанные, локальный учёт (`/stickers`)
 
 ## Известный технический долг
 - README.md устарел (неполный список API)
 - `md spec 1.md` / `md spec 2.md` в корне — устаревшие ТЗ
 - Auth отключён в dev
-- Stickers: ручная термопечать 58×40 @ 100% ещё не проверена; 3 длинных SKU могут уйти в ellipsis
+- Stickers: ручная термопечать 58×40 @ 100%; 3 длинных SKU → ellipsis (parent task)
 
 ## Архив задач
 
 | Дата | Task ID | Архив |
 |------|---------|-------|
+| 2026-09-04 | `stickers-ozon-unprinted-filter` | `memory-bank/archive/archive-stickers-ozon-unprinted-filter.md` |
 | 2026-08-25 | `settings-page-consolidation` | `memory-bank/archive/archive-settings-page-consolidation.md` |
 | 2026-08-25 | `stickers-label-generation` | `memory-bank/archive/archive-stickers-label-generation.md` |
 | 2026-08-22 | `orders-product-images` | `memory-bank/archive/archive-orders-product-images.md` |
@@ -52,6 +53,8 @@
 | 2026-08-10 | `orders-warehouse-stock` | `memory-bank/archive/archive-orders-warehouse-stock.md` |
 
 ## История инициализации
+- **2026-09-04**: ARCHIVE — `stickers-ozon-unprinted-filter`
+- **2026-09-04**: BUILD — `stickers-ozon-unprinted-filter` — split UI + local printed labels Ozon/WB
 - **2026-08-25**: ARCHIVE — `settings-page-consolidation`
 - **2026-08-25**: REFLECT — `settings-page-consolidation` — MappingBlock → FileUploadField
 - **2026-08-25**: BUILD — `settings-page-consolidation` — `/settings`, MarketplaceApiBlock split, build OK → REFLECT

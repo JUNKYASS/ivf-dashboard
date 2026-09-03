@@ -1,16 +1,11 @@
 # Active Context
 
-## Focus
-Parser page generate block UI polish
+## Текущий фокус
+Нет активной задачи. Memory Bank готов к VAN.
 
-## Changes
-- Download panel with last generation timestamp
-- Secondary button-style download links
-- Generate button: column layout, centered loading state
-- TexdesignCard grayed when disabled
+## Последняя завершённая
+`stickers-ozon-unprinted-filter` — COMPLETED & ARCHIVED 2026-09-04  
+`memory-bank/archive/archive-stickers-ozon-unprinted-filter.md`
 
-## Key files
-- `frontend/src/pages/ParserPage.tsx`
-- `frontend/src/styles/global.css`
-- `frontend/src/components/TexdesignCard.tsx`
-- `backend/src/services/configService.ts` — `getOutputStatus()`
+## Припарковано
+`parser-generate-ui`, `copy-articles-clipboard-color`

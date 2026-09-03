@@ -1,25 +1,27 @@
 # Tasks
 
 ## Current Task
-- **ID:** `parser-generate-ui`
-- **Status:** IN PROGRESS
-- **Complexity:** Level 2
-- **Description:** UI блока генерации + disabled state карточки ТексДизайн
-
-### Checklist
-- [x] Creative: `memory-bank/creative/creative-parser-generate-ui.md`
-- [x] `outputGeneratedAt` из mtime файлов
-- [x] Panel + secondary download buttons
-- [x] Fix generate button loading layout
-- [x] `supplier-card--disabled`
-- [ ] Verify build
-
-### Prior (same session)
-- [x] TexDesign timeout + toggle (`texdesign-timeout-toggle`)
+None — Memory Bank ready for VAN.
 
 ## Last completed
-- **ID:** `settings-page-consolidation`
-- **Status:** COMPLETED & ARCHIVED (2026-08-25)
+- **ID:** `stickers-ozon-unprinted-filter`
+- **Status:** COMPLETED & ARCHIVED (2026-09-04)
+- **Archive:** `memory-bank/archive/archive-stickers-ozon-unprinted-filter.md`
+- **Reflection:** `memory-bank/reflection/reflection-stickers-ozon-unprinted-filter.md`
+
+## Status
+- [x] Initialization complete
+- [x] Planning complete
+- [x] Creative phases complete
+- [x] Implementation complete
+- [x] Reflection complete
+- [x] Archiving complete
+
+## Archive
+- **Date:** 2026-09-04
+- **Archive Document:** `memory-bank/archive/archive-stickers-ozon-unprinted-filter.md`
+- **Status:** COMPLETED
 
 ## Parked
-`copy-articles-clipboard-color` — untracked `frontend/src/utils/copyToClipboard.ts`
+- `parser-generate-ui`
+- `copy-articles-clipboard-color` — untracked `frontend/src/utils/copyToClipboard.ts`

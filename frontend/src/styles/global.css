@@ -961,12 +961,36 @@ select {
   gap: 12px;
 }
 
+.stickers-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stickers-marketplace-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stickers-marketplace-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.stickers-marketplace-divider {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--separator);
+}
+
 .stickers-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .stickers-hint {

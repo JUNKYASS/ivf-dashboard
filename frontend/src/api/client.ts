@@ -93,12 +93,17 @@ export const api = {
       method: 'POST',
     }),
 
-  generateStickers: async (marketplace: 'ozon' | 'wb') => {
+  generateStickers: async (
+    marketplace: 'ozon' | 'wb',
+    options: { scope?: 'all' | 'unprinted' } = {},
+  ) => {
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 180_000);
+    const scope = options.scope ?? 'all';
+    const query = scope === 'unprinted' ? '?scope=unprinted' : '';
 
     try {
-      const response = await fetch(`/api/marketplace/stickers/${marketplace}`, {
+      const response = await fetch(`/api/marketplace/stickers/${marketplace}${query}`, {
         method: 'POST',
         signal: controller.signal,
       });
@@ -112,7 +117,7 @@ export const api = {
       const skippedRaw = response.headers.get('X-Stickers-Skipped') ?? '';
       const skipped = skippedRaw ? skippedRaw.split(',').filter(Boolean) : [];
       const objectUrl = URL.createObjectURL(blob);
-      triggerDownload(objectUrl, `${marketplace}-labels.pdf`);
+      triggerDownload(objectUrl, buildStickersFilename(marketplace, scope));
       URL.revokeObjectURL(objectUrl);
       return { count, skipped };
     } finally {
@@ -120,6 +125,17 @@ export const api = {
     }
   },
 };
+
+export function buildStickersFilename(
+  marketplace: 'ozon' | 'wb',
+  scope: 'all' | 'unprinted' = 'all',
+): string {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+  const scopePart = scope === 'unprinted' ? '-unprinted' : '';
+  return `${marketplace}-labels${scopePart}-${stamp}.pdf`;
+}
 
 export function triggerDownload(url: string, filename: string) {
   const link = document.createElement('a');

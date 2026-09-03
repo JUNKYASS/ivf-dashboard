@@ -6,6 +6,12 @@ export const OZON_LABEL_BATCH_SIZE = 20;
 export const WB_STICKER_BATCH_SIZE = 100;
 export const WB_STATUS_BATCH_SIZE = 100;
 
+export type StickersScope = 'all' | 'unprinted';
+
+export function parseStickersScope(value: unknown): StickersScope {
+  return value === 'unprinted' ? 'unprinted' : 'all';
+}
+
 export class StickersError extends Error {
   readonly status: number;
 

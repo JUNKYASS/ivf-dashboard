@@ -12,6 +12,7 @@ import {
 } from '../services/ozonProductCacheService';
 import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
 import { generateStickers, StickersError } from '../services/stickersService';
+import { parseStickersScope } from '../services/stickersShared';
 import {
   getWarehouseStockStatus,
   saveWarehouseStock,
@@ -113,7 +114,8 @@ router.post('/marketplace/stickers/:marketplace', async (req, res, next) => {
   }
 
   try {
-    const result = await generateStickers(marketplace);
+    const scope = parseStickersScope(req.query.scope);
+    const result = await generateStickers(marketplace, { scope });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${marketplace}-labels.pdf"`);
     res.setHeader('X-Stickers-Count', String(result.count));
