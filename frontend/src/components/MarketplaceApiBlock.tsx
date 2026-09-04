@@ -12,6 +12,7 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
   const [ozonClientId, setOzonClientId] = useState('');
   const [ozonApiKey, setOzonApiKey] = useState('');
   const [wbApiToken, setWbApiToken] = useState('');
+  const [mpstatsToken, setMpstatsToken] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -19,10 +20,11 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
     config?.ozon.clientIdConfigured,
     config?.ozon.apiKeyConfigured,
     config?.wb.apiTokenConfigured,
+    config?.mpstats.apiTokenConfigured,
   ].filter(Boolean).length;
 
   const handleSave = async () => {
-    if (!ozonClientId && !ozonApiKey && !wbApiToken) return;
+    if (!ozonClientId && !ozonApiKey && !wbApiToken && !mpstatsToken) return;
 
     setSaving(true);
     setSaved(false);
@@ -31,10 +33,12 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
         ozonClientId: ozonClientId || undefined,
         ozonApiKey: ozonApiKey || undefined,
         wbApiToken: wbApiToken || undefined,
+        mpstatsToken: mpstatsToken || undefined,
       });
       setOzonClientId('');
       setOzonApiKey('');
       setWbApiToken('');
+      setMpstatsToken('');
       setSaved(true);
       onConfigChange(data);
     } finally {
@@ -43,7 +47,7 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
   };
 
   return (
-    <CollapsibleSection title="API маркетплейсов" summary={`Ключи: ${configuredCount}/3`}>
+    <CollapsibleSection title="API маркетплейсов" summary={`Ключи: ${configuredCount}/4`}>
       <div className="marketplace-api-grid">
         <div className="field">
           <label htmlFor="ozon-client-id">Ozon Client-Id</label>
@@ -93,13 +97,29 @@ export function MarketplaceApiBlock({ config, onConfigChange }: Props) {
             onChange={(e) => setWbApiToken(e.target.value)}
           />
         </div>
+        <div className="field">
+          <label htmlFor="mpstats-api-token">MPSTATS Token</label>
+          <input
+            id="mpstats-api-token"
+            className="clay-input"
+            type="password"
+            autoComplete="off"
+            placeholder={
+              config?.mpstats.apiTokenConfigured
+                ? `Сохранён (${config.mpstats.apiTokenMask})`
+                : 'Введите токен MPSTATS'
+            }
+            value={mpstatsToken}
+            onChange={(e) => setMpstatsToken(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="marketplace-api-actions">
         <button
           type="button"
           className="clay-btn"
-          disabled={saving || (!ozonClientId && !ozonApiKey && !wbApiToken)}
+          disabled={saving || (!ozonClientId && !ozonApiKey && !wbApiToken && !mpstatsToken)}
           onClick={() => void handleSave()}
         >
           {saving ? 'Сохранение...' : 'Сохранить ключи'}

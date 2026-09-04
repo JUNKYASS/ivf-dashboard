@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/parser', label: 'Парсер остатков' },
   { to: '/orders', label: 'Обработка заказов' },
   { to: '/stickers', label: 'Генерация стикеров' },
+  { to: '/reviews', label: 'Отзывы' },
   { to: '/settings', label: 'Настройки' },
 ] as const;
 

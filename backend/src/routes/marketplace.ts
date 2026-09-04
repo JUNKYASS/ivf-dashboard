@@ -10,6 +10,12 @@ import {
   getOzonProductCacheStatus,
   syncOzonProductCache,
 } from '../services/ozonProductCacheService';
+import {
+  fetchOzonReviewRating,
+  fetchWbReviewRating,
+  getReviewsCacheStatus,
+  syncWbReviewsCache,
+} from '../services/reviewsCacheService';
 import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
 import { generateStickers, StickersError } from '../services/stickersService';
 import { parseStickersScope } from '../services/stickersShared';
@@ -26,21 +32,24 @@ router.get('/config/marketplace-api', (_req, res) => {
     ...getMarketplaceApiPublicConfig(),
     wbTitlesCache: getWbTitlesCacheStatus(),
     ozonProductCache: getOzonProductCacheStatus(),
+    reviewsCache: getReviewsCacheStatus(),
   });
 });
 
 router.post('/config/marketplace-api', (req, res) => {
-  const { ozonClientId, ozonApiKey, wbApiToken } = req.body as {
+  const { ozonClientId, ozonApiKey, wbApiToken, mpstatsToken } = req.body as {
     ozonClientId?: string;
     ozonApiKey?: string;
     wbApiToken?: string;
+    mpstatsToken?: string;
   };
 
-  const config = updateMarketplaceApiConfig({ ozonClientId, ozonApiKey, wbApiToken });
+  const config = updateMarketplaceApiConfig({ ozonClientId, ozonApiKey, wbApiToken, mpstatsToken });
   res.json({
     ...config,
     wbTitlesCache: getWbTitlesCacheStatus(),
     ozonProductCache: getOzonProductCacheStatus(),
+    reviewsCache: getReviewsCacheStatus(),
   });
 });
 
@@ -72,6 +81,62 @@ router.post('/marketplace/ozon-products/sync', async (_req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+router.get('/marketplace/reviews/status', (_req, res) => {
+  res.json(getReviewsCacheStatus());
+});
+
+router.post('/marketplace/reviews/wb/sync', async (_req, res, next) => {
+  try {
+    const credentials = getMarketplaceApiCredentials();
+    if (!credentials.wbApiToken) {
+      res.status(400).json({ error: 'Не настроен WB_API_TOKEN' });
+      return;
+    }
+
+    const status = await syncWbReviewsCache(credentials.wbApiToken);
+    res.json(status);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Ошибка синхронизации отзывов WB';
+    res.status(400).json({ error: message });
+  }
+});
+
+router.get('/marketplace/reviews/rating', async (req, res) => {
+  const marketplace = req.query.marketplace;
+  const article = typeof req.query.article === 'string' ? req.query.article : '';
+
+  if (marketplace === 'wb') {
+    try {
+      const credentials = getMarketplaceApiCredentials();
+      const result = await fetchWbReviewRating(article, credentials.wbApiToken);
+      res.json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Ошибка проверки отзывов WB';
+      res.status(400).json({ error: message });
+    }
+    return;
+  }
+
+  if (marketplace === 'ozon') {
+    try {
+      const credentials = getMarketplaceApiCredentials();
+      const result = await fetchOzonReviewRating(
+        article,
+        credentials.mpstatsToken,
+        credentials.ozonClientId,
+        credentials.ozonApiKey,
+      );
+      res.json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Ошибка проверки отзывов Ozon';
+      res.status(400).json({ error: message });
+    }
+    return;
+  }
+
+  res.status(400).json({ error: 'Укажите marketplace=wb или marketplace=ozon' });
 });
 
 router.get('/marketplace/warehouse-stock', (_req, res) => {

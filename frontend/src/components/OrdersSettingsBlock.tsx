@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import type {
   MarketplaceApiPublicConfig,
   OzonProductCacheStatus,
+  ReviewsCacheStatus,
   WarehouseStockStatus,
   WbTitlesCacheStatus,
 } from '../types';
@@ -66,6 +67,11 @@ export function OrdersSettingsBlock({
     config?.ozonProductCache ?? null,
   );
   const [ozonSyncMessage, setOzonSyncMessage] = useState<string | null>(null);
+  const [syncingWbReviews, setSyncingWbReviews] = useState(false);
+  const [wbReviewsCache, setWbReviewsCache] = useState<ReviewsCacheStatus['wb'] | null>(
+    config?.reviewsCache?.wb ?? null,
+  );
+  const [wbReviewsSyncMessage, setWbReviewsSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (config?.wbTitlesCache) {
@@ -78,6 +84,12 @@ export function OrdersSettingsBlock({
       setOzonProductCache(config.ozonProductCache);
     }
   }, [config?.ozonProductCache]);
+
+  useEffect(() => {
+    if (config?.reviewsCache?.wb) {
+      setWbReviewsCache(config.reviewsCache.wb);
+    }
+  }, [config?.reviewsCache?.wb]);
 
   const handleSyncTitles = async () => {
     setSyncingTitles(true);
@@ -113,6 +125,35 @@ export function OrdersSettingsBlock({
     }
   };
 
+  const handleSyncWbReviews = async () => {
+    setSyncingWbReviews(true);
+    setWbReviewsSyncMessage(null);
+    try {
+      const status = await api.syncWbReviewsCache();
+      setWbReviewsCache(status);
+      setWbReviewsSyncMessage(`Кэш отзывов: ${status.reviewCount} отзывов по ${status.productCount} товарам`);
+      if (config) {
+        onConfigChange({
+          ...config,
+          reviewsCache: {
+            wb: status,
+            ozon: config.reviewsCache?.ozon ?? {
+              exists: false,
+              updatedAt: null,
+              reviewCount: 0,
+              productCount: 0,
+              source: 'mpstats',
+            },
+          },
+        });
+      }
+    } catch (error) {
+      setWbReviewsSyncMessage(error instanceof Error ? error.message : 'Ошибка синхронизации');
+    } finally {
+      setSyncingWbReviews(false);
+    }
+  };
+
   return (
     <CollapsibleSection
       title="Настройки обработки заказов"
@@ -136,6 +177,31 @@ export function OrdersSettingsBlock({
           {syncingTitles ? 'Синхронизация...' : 'Обновить кэш WB'}
         </button>
         {syncMessage && <span className="wb-titles-cache-message">{syncMessage}</span>}
+      </div>
+
+      <div className="orders-settings-divider" />
+
+      <h3 className="orders-settings-subtitle">Кэш отзывов WB</h3>
+      <div className="wb-titles-cache-block wb-titles-cache-block-nested">
+        <p className="wb-titles-cache-meta">
+          {wbReviewsCache?.reviewCount ?? 0} отзывов,{' '}
+          {formatCacheDate(wbReviewsCache?.updatedAt ?? null)}
+        </p>
+        <p className="wb-titles-cache-hint">
+          Опциональная полная синхронизация отзывов. Для проверки по артикулу на странице «Отзывы»
+          достаточно live-запроса — но токен WB должен включать категорию «Отзывы и вопросы».
+        </p>
+        <button
+          type="button"
+          className="clay-btn clay-btn-secondary"
+          disabled={syncingWbReviews || !config?.wb.apiTokenConfigured}
+          onClick={() => void handleSyncWbReviews()}
+        >
+          {syncingWbReviews ? 'Синхронизация...' : 'Синхронизировать отзывы WB'}
+        </button>
+        {wbReviewsSyncMessage && (
+          <span className="wb-titles-cache-message">{wbReviewsSyncMessage}</span>
+        )}
       </div>
 
       <div className="orders-settings-divider" />

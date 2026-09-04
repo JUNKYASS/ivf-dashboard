@@ -15,6 +15,7 @@
 | Docker деплой | ✅ Готово | docker-compose + nginx |
 | Memory Bank | ✅ Инициализирован | 2026-08-09 |
 | Живая документация (`docs/`) | 🔄 В процессе | Структура создана |
+| Отзывы (`/reviews`) | ✅ Готово | WB live API + Ozon MPSTATS; sync WB в Settings; lookup по артикулу |
 
 ## Что работает
 - Загрузка mapping.xlsx
@@ -53,7 +54,7 @@
 | 2026-08-10 | `orders-warehouse-stock` | `memory-bank/archive/archive-orders-warehouse-stock.md` |
 
 ## История инициализации
-- **2026-09-04**: ARCHIVE — `stickers-ozon-unprinted-filter`
+- **2026-09-05**: BUILD — `reviews-average-rating-page` фазы A–C — article→nmId fallback, live WB rating, UX, tests 26/26 → REFLECT
 - **2026-09-04**: BUILD — `stickers-ozon-unprinted-filter` — split UI + local printed labels Ozon/WB
 - **2026-08-25**: ARCHIVE — `settings-page-consolidation`
 - **2026-08-25**: REFLECT — `settings-page-consolidation` — MappingBlock → FileUploadField

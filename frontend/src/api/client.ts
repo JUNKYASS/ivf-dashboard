@@ -4,6 +4,8 @@ import type {
   MarketplaceApiPublicConfig,
   OrdersFetchResponse,
   OzonProductCacheStatus,
+  ReviewRatingLookupResult,
+  ReviewsCacheStatus,
   WarehouseStockStatus,
   WarehouseStockUploadResponse,
   WbTitlesCacheStatus,
@@ -59,6 +61,7 @@ export const api = {
     ozonClientId?: string;
     ozonApiKey?: string;
     wbApiToken?: string;
+    mpstatsToken?: string;
   }) =>
     request<MarketplaceApiPublicConfig>('/api/config/marketplace-api', {
       method: 'POST',
@@ -92,6 +95,18 @@ export const api = {
     request<OzonProductCacheStatus>('/api/marketplace/ozon-products/sync', {
       method: 'POST',
     }),
+
+  getReviewsCacheStatus: () => request<ReviewsCacheStatus>('/api/marketplace/reviews/status'),
+
+  syncWbReviewsCache: () =>
+    request<ReviewsCacheStatus['wb']>('/api/marketplace/reviews/wb/sync', {
+      method: 'POST',
+    }),
+
+  lookupReviewRating: (marketplace: 'wb' | 'ozon', article: string) => {
+    const params = new URLSearchParams({ marketplace, article });
+    return request<ReviewRatingLookupResult>(`/api/marketplace/reviews/rating?${params.toString()}`);
+  },
 
   generateStickers: async (
     marketplace: 'ozon' | 'wb',

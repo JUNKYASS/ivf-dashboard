@@ -117,3 +117,5 @@ export const FABRIC_MATERIAL_CODE_ORDER = [
 export const OZON_API_BASE_URL = 'https://api-seller.ozon.ru';
 export const WB_API_BASE_URL = 'https://marketplace-api.wildberries.ru';
 export const WB_CONTENT_API_BASE_URL = 'https://content-api.wildberries.ru';
+export const WB_FEEDBACKS_API_BASE_URL = 'https://feedbacks-api.wildberries.ru';
+export const MPSTATS_API_BASE_URL = 'https://mpstats.io/api/analytics/v1';

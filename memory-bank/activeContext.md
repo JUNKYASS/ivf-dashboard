@@ -1,11 +1,11 @@
 # Active Context
 
 ## Текущий фокус
-Нет активной задачи. Memory Bank готов к VAN.
+`reviews-average-rating-page` — PLAN доработок: lookup по артикулу маркетплейса, sync WB в Settings, fix 403, UI cleanup.
 
-## Последняя завершённая
-`stickers-ozon-unprinted-filter` — COMPLETED & ARCHIVED 2026-09-04  
-`memory-bank/archive/archive-stickers-ozon-unprinted-filter.md`
+## Ключевые находки
+- `LT-240105-PST-1-1x1orange` есть в wb-titles cache, но `nmIdByArticle` пуст → lookup ломается
+- WB 403 = токен без категории «Отзывы и вопросы»
 
-## Припарковано
-`parser-generate-ui`, `copy-articles-clipboard-color`
+## Next
+`/build` фазы A–C

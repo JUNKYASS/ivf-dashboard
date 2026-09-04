@@ -91,6 +91,29 @@ export type OzonProductCacheStatus = {
   count: number;
 };
 
+export type ReviewsMarketplaceCacheStatus = {
+  exists: boolean;
+  updatedAt: string | null;
+  reviewCount: number;
+  productCount: number;
+  source?: 'mpstats';
+};
+
+export type ReviewsCacheStatus = {
+  wb: ReviewsMarketplaceCacheStatus;
+  ozon: ReviewsMarketplaceCacheStatus;
+};
+
+export type ReviewRatingLookupResult = {
+  marketplace: 'wb' | 'ozon';
+  article: string;
+  resolvedKey: string | null;
+  count: number;
+  avgRating: number | null;
+  syncedAt: string | null;
+  source: 'cache' | 'mpstats' | 'wb_api';
+};
+
 export type MarketplaceApiPublicConfig = {
   ozon: {
     clientIdConfigured: boolean;
@@ -102,8 +125,13 @@ export type MarketplaceApiPublicConfig = {
     apiTokenConfigured: boolean;
     apiTokenMask: string | null;
   };
+  mpstats: {
+    apiTokenConfigured: boolean;
+    apiTokenMask: string | null;
+  };
   wbTitlesCache: WbTitlesCacheStatus;
   ozonProductCache: OzonProductCacheStatus;
+  reviewsCache: ReviewsCacheStatus;
 };
 
 export type WarehouseStockFileInfo = {

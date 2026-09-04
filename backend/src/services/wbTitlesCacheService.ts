@@ -34,6 +34,7 @@ export type WbTitlesCacheFile = {
   updatedAt: string;
   byArticle: Record<string, string>;
   byNmId: Record<string, string>;
+  nmIdByArticle: Record<string, string>;
   imageByArticle: Record<string, string>;
   imageByNmId: Record<string, string>;
 };
@@ -61,6 +62,7 @@ function emptyCache(): WbTitlesCacheFile {
     updatedAt: '',
     byArticle: {},
     byNmId: {},
+    nmIdByArticle: {},
     imageByArticle: {},
     imageByNmId: {},
   };
@@ -71,6 +73,7 @@ function normalizeCache(raw: Partial<WbTitlesCacheFile> | null | undefined): WbT
     updatedAt: raw?.updatedAt ?? '',
     byArticle: raw?.byArticle ?? {},
     byNmId: raw?.byNmId ?? {},
+    nmIdByArticle: raw?.nmIdByArticle ?? {},
     imageByArticle: raw?.imageByArticle ?? {},
     imageByNmId: raw?.imageByNmId ?? {},
   };
@@ -137,6 +140,32 @@ export function lookupWbProductTitle(article: string, nmId?: number): string | n
   }
 
   return null;
+}
+
+export function resolveWbNmIdFromCache(
+  cache: Pick<WbTitlesCacheFile, 'nmIdByArticle' | 'byArticle' | 'byNmId'>,
+  article: string,
+): string | null {
+  const trimmed = article.trim();
+  if (!trimmed) return null;
+  if (/^\d+$/.test(trimmed)) return trimmed;
+
+  const articleKey = normalizeArticle(trimmed);
+  const fromMap = cache.nmIdByArticle[articleKey];
+  if (fromMap) return fromMap;
+
+  const title = cache.byArticle[articleKey];
+  if (!title) return null;
+
+  for (const [nmId, nmTitle] of Object.entries(cache.byNmId)) {
+    if (nmTitle === title) return nmId;
+  }
+
+  return null;
+}
+
+export function lookupWbNmId(article: string): string | null {
+  return resolveWbNmIdFromCache(getWbTitlesCache(), article);
 }
 
 export function lookupWbProductImage(article: string, nmId?: number): string | null {
@@ -237,6 +266,9 @@ function addCardsToCache(cache: WbTitlesCacheFile, cards: WbCard[]): void {
       }
       if (imageUrl) {
         cache.imageByArticle[articleKey] = imageUrl;
+      }
+      if (card.nmID !== undefined) {
+        cache.nmIdByArticle[articleKey] = String(card.nmID);
       }
     }
 
