@@ -1,12 +1,15 @@
-import axios, { isAxiosError } from 'axios';
 import fs from 'fs';
 import path from 'path';
-import { WB_FEEDBACKS_API_BASE_URL } from '../constants';
 import { REVIEWS_CACHE_PATH, STORAGE_DIR } from '../types';
-import { aggregateMpstatsComments, fetchMpstatsOzonComments } from './mpstatsService';
+import {
+  aggregateMpstatsComments,
+  fetchMpstatsOzonComments,
+  fetchMpstatsWbComments,
+} from './mpstatsService';
 import { normalizeArticle } from './mappingLookupService';
+import { listOzonModelGroupMembers } from './ozonModelGroupService';
 import { resolveOzonSku } from './ozonSkuResolver';
-import { lookupWbNmId } from './wbTitlesCacheService';
+import { listWbGroupMembers, lookupWbNmId } from './wbTitlesCacheService';
 
 export type ReviewAggregate = {
   count: number;
@@ -35,6 +38,7 @@ export type ReviewsCacheStatus = {
     updatedAt: string | null;
     reviewCount: number;
     productCount: number;
+    source: 'mpstats';
   };
   ozon: {
     exists: boolean;
@@ -45,6 +49,14 @@ export type ReviewsCacheStatus = {
   };
 };
 
+export type ReviewGroupMemberRating = {
+  article: string;
+  resolvedKey: string;
+  count: number;
+  avgRating: number | null;
+  isRequested: boolean;
+};
+
 export type ReviewRatingLookupResult = {
   marketplace: 'wb' | 'ozon';
   article: string;
@@ -52,34 +64,13 @@ export type ReviewRatingLookupResult = {
   count: number;
   avgRating: number | null;
   syncedAt: string | null;
-  source: 'cache' | 'mpstats' | 'wb_api';
+  source: 'cache' | 'mpstats';
+  groupMembers?: ReviewGroupMemberRating[];
+  groupError?: string;
+  stale?: boolean;
 };
 
-type WbFeedback = {
-  productValuation?: number;
-  productDetails?: {
-    nmId?: number;
-    supplierArticle?: string;
-  };
-};
-
-type WbFeedbacksResponse = {
-  data?: {
-    feedbacks?: WbFeedback[];
-  };
-};
-
-const WB_PAGE_SIZE = 1000;
-const WB_MIN_REQUEST_INTERVAL_MS = 500;
-const WB_MAX_PAGES = 500;
-const WB_MAX_RETRIES = 8;
-
-let wbLastRequestAt = 0;
 let memoryCache: ReviewsCacheFile | null = null;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function emptyCache(): ReviewsCacheFile {
   return {
@@ -153,6 +144,7 @@ export function getReviewsCacheStatus(): ReviewsCacheStatus {
       updatedAt: cache.wb.updatedAt || null,
       reviewCount: cache.wb.reviewCount,
       productCount: Object.keys(cache.wb.byNmId).length,
+      source: 'mpstats',
     },
     ozon: {
       exists: cache.ozon.reviewCount > 0,
@@ -185,15 +177,6 @@ export function roundRating(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function upsertAggregate(
-  map: Record<string, ReviewAggregate>,
-  key: string,
-  rating: number,
-): void {
-  const current = map[key] ?? createEmptyAggregate();
-  map[key] = addRatingToAggregate(current, rating);
-}
-
 function saveOzonAggregate(
   sku: number,
   offerId: string | undefined,
@@ -217,145 +200,6 @@ function saveOzonAggregate(
   return syncedAt;
 }
 
-async function waitForWbRateLimit(): Promise<void> {
-  const elapsed = Date.now() - wbLastRequestAt;
-  if (elapsed < WB_MIN_REQUEST_INTERVAL_MS) {
-    await sleep(WB_MIN_REQUEST_INTERVAL_MS - elapsed);
-  }
-}
-
-function getWbRetryDelayMs(error: unknown): number {
-  if (!isAxiosError(error) || error.response?.status !== 429) {
-    return 0;
-  }
-
-  const headers = error.response.headers;
-  const retrySec = Number(headers['x-ratelimit-retry'] ?? headers['x-ratelimit-reset'] ?? 3);
-  return Math.max(retrySec, 1) * 1000;
-}
-
-async function waitForWbRateLimitReset(headers: Record<string, unknown>): Promise<void> {
-  const remaining = Number(headers['x-ratelimit-remaining']);
-  if (!Number.isFinite(remaining) || remaining > 0) return;
-
-  const resetSec = Number(headers['x-ratelimit-reset'] ?? 1);
-  await sleep(Math.max(resetSec, 1) * 1000);
-}
-
-async function fetchWbFeedbacksPage(
-  apiToken: string,
-  skip: number,
-  archive: boolean,
-  nmId?: string,
-): Promise<WbFeedback[]> {
-  const endpoint = archive ? '/api/v1/feedbacks/archive' : '/api/v1/feedbacks';
-
-  for (let attempt = 0; attempt < WB_MAX_RETRIES; attempt += 1) {
-    await waitForWbRateLimit();
-    wbLastRequestAt = Date.now();
-
-    try {
-      const response = await axios.get<WbFeedbacksResponse>(
-        `${WB_FEEDBACKS_API_BASE_URL}${endpoint}`,
-        {
-          headers: { Authorization: apiToken },
-          params: {
-            take: WB_PAGE_SIZE,
-            skip,
-            order: 'dateDesc',
-            ...(nmId ? { nmId: Number(nmId) } : {}),
-          },
-          timeout: 60_000,
-        },
-      );
-
-      await waitForWbRateLimitReset(response.headers as Record<string, unknown>);
-      return response.data.data?.feedbacks ?? [];
-    } catch (error) {
-      const retryDelayMs = getWbRetryDelayMs(error);
-      if (retryDelayMs > 0 && attempt < WB_MAX_RETRIES - 1) {
-        await sleep(retryDelayMs);
-        continue;
-      }
-      throw error;
-    }
-  }
-
-  throw new Error('WB Feedbacks API: превышен лимит запросов');
-}
-
-async function fetchWbFeedbacksForNmId(apiToken: string, nmId: string): Promise<WbFeedback[]> {
-  const all: WbFeedback[] = [];
-
-  for (const archive of [false, true]) {
-    for (let page = 0; page < WB_MAX_PAGES; page += 1) {
-      const skip = page * WB_PAGE_SIZE;
-      const batch = await fetchWbFeedbacksPage(apiToken, skip, archive, nmId);
-      if (batch.length === 0) break;
-      all.push(...batch);
-      if (batch.length < WB_PAGE_SIZE) break;
-    }
-  }
-
-  return all;
-}
-
-async function fetchAllWbFeedbacks(apiToken: string): Promise<WbFeedback[]> {
-  const all: WbFeedback[] = [];
-
-  for (const archive of [false, true]) {
-    for (let page = 0; page < WB_MAX_PAGES; page += 1) {
-      const skip = page * WB_PAGE_SIZE;
-      const batch = await fetchWbFeedbacksPage(apiToken, skip, archive);
-      if (batch.length === 0) break;
-      all.push(...batch);
-      if (batch.length < WB_PAGE_SIZE) break;
-    }
-  }
-
-  return all;
-}
-
-function buildWbAggregates(feedbacks: WbFeedback[]): ReviewsCacheFile['wb'] {
-  const byNmId: Record<string, ReviewAggregate> = {};
-  const byArticle: Record<string, ReviewAggregate> = {};
-  let reviewCount = 0;
-
-  for (const feedback of feedbacks) {
-    const rating = feedback.productValuation;
-    const nmId = feedback.productDetails?.nmId;
-    if (rating === undefined || rating === null || nmId === undefined) continue;
-
-    reviewCount += 1;
-    const nmKey = String(nmId);
-    upsertAggregate(byNmId, nmKey, rating);
-
-    const supplierArticle = feedback.productDetails?.supplierArticle?.trim();
-    if (supplierArticle) {
-      upsertAggregate(byArticle, normalizeArticle(supplierArticle), rating);
-    }
-  }
-
-  return {
-    updatedAt: new Date().toISOString(),
-    byNmId,
-    byArticle,
-    reviewCount,
-  };
-}
-
-function aggregateWbFeedbacks(feedbacks: WbFeedback[]): ReviewAggregate {
-  let aggregate = createEmptyAggregate();
-
-  for (const feedback of feedbacks) {
-    const rating = feedback.productValuation;
-    if (rating === undefined || rating === null) continue;
-    aggregate = addRatingToAggregate(aggregate, rating);
-  }
-
-  return aggregate;
-}
-
 function saveWbAggregate(
   nmId: string,
   article: string,
@@ -375,47 +219,213 @@ function saveWbAggregate(
   return syncedAt;
 }
 
-function formatAxiosError(error: unknown, marketplace: 'WB'): string {
-  if (!isAxiosError(error)) {
-    return error instanceof Error ? error.message : `Ошибка синхронизации ${marketplace}`;
-  }
+function aggregateToMemberRating(
+  resolvedKey: string,
+  aggregate: ReviewAggregate | undefined,
+): Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'> | null {
+  if (!aggregate) return null;
 
-  const status = error.response?.status;
-  if (status === 403) {
-    return (
-      'WB: токен без доступа к «Отзывы и вопросы». ' +
-      'Создайте токен с этой категорией в seller.wildberries.ru → Настройки → Доступ к API'
-    );
-  }
-
-  if (status === 429) {
-    const headers = error.response?.headers ?? {};
-    const retrySec = Number(headers['x-ratelimit-retry'] ?? headers['x-ratelimit-reset'] ?? 0);
-    const waitHint =
-      retrySec > 0 ? ` Подождите ${retrySec} сек и повторите.` : ' Подождите минуту и повторите.';
-    return `WB: превышен лимит запросов API.${waitHint}`;
-  }
-
-  const message =
-    (error.response?.data as { message?: string } | undefined)?.message ?? error.message;
-  return `${marketplace}: ${message}`;
+  return {
+    resolvedKey,
+    count: aggregate.count,
+    avgRating: aggregate.count ? aggregate.avgRating : null,
+  };
 }
 
-export async function syncWbReviewsCache(apiToken: string): Promise<ReviewsCacheStatus['wb']> {
-  const feedbacks = await fetchAllWbFeedbacks(apiToken).catch((error) => {
-    throw new Error(formatAxiosError(error, 'WB'));
-  });
-
+function lookupCachedWbMemberRating(
+  nmId: string,
+  article: string,
+): Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'> | null {
   const cache = getReviewsCache();
-  cache.wb = buildWbAggregates(feedbacks);
-  writeCacheToDisk(cache);
+  return (
+    aggregateToMemberRating(`nmId:${nmId}`, cache.wb.byNmId[nmId]) ??
+    aggregateToMemberRating(`article:${normalizeArticle(article)}`, cache.wb.byArticle[normalizeArticle(article)])
+  );
+}
 
-  return getReviewsCacheStatus().wb;
+function lookupCachedOzonMemberRating(
+  sku: number,
+  offerId: string,
+): Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'> | null {
+  const cache = getReviewsCache();
+  return (
+    aggregateToMemberRating(`sku:${sku}`, cache.ozon.bySku[String(sku)]) ??
+    aggregateToMemberRating(
+      `offer:${normalizeArticle(offerId)}`,
+      cache.ozon.byOfferId[normalizeArticle(offerId)],
+    )
+  );
+}
+
+const wbRatingInflight = new Map<
+  string,
+  Promise<Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'>>
+>();
+const ozonRatingInflight = new Map<
+  string,
+  Promise<Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'>>
+>();
+
+export function sortGroupMembersByRating(members: ReviewGroupMemberRating[]): ReviewGroupMemberRating[] {
+  return [...members].sort((left, right) => {
+    const leftScore = left.count > 0 && left.avgRating !== null ? left.avgRating : Number.POSITIVE_INFINITY;
+    const rightScore =
+      right.count > 0 && right.avgRating !== null ? right.avgRating : Number.POSITIVE_INFINITY;
+
+    if (leftScore !== rightScore) {
+      return leftScore - rightScore;
+    }
+
+    return left.article.localeCompare(right.article, 'ru');
+  });
+}
+
+async function fetchMpstatsRatingForWbNmId(
+  nmId: string,
+  article: string,
+  mpstatsToken: string,
+): Promise<Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'>> {
+  const cached = lookupCachedWbMemberRating(nmId, article);
+  if (cached) return cached;
+
+  const inflight = wbRatingInflight.get(nmId);
+  if (inflight) return inflight;
+
+  const request = (async () => {
+    const comments = await fetchMpstatsWbComments(Number(nmId), mpstatsToken);
+    const aggregate = aggregateMpstatsComments(comments);
+    saveWbAggregate(nmId, article, {
+      count: aggregate.count,
+      sumRating: aggregate.sumRating,
+      avgRating: aggregate.avgRating,
+    });
+    return {
+      resolvedKey: `nmId:${nmId}`,
+      count: aggregate.count,
+      avgRating: aggregate.count ? aggregate.avgRating : null,
+    };
+  })();
+
+  wbRatingInflight.set(nmId, request);
+  try {
+    return await request;
+  } finally {
+    wbRatingInflight.delete(nmId);
+  }
+}
+
+async function fetchMpstatsRatingForOzonSku(
+  sku: number,
+  offerId: string,
+  mpstatsToken: string,
+): Promise<Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'>> {
+  const cached = lookupCachedOzonMemberRating(sku, offerId);
+  if (cached) return cached;
+
+  const skuKey = String(sku);
+  const inflight = ozonRatingInflight.get(skuKey);
+  if (inflight) return inflight;
+
+  const request = (async () => {
+    const comments = await fetchMpstatsOzonComments(sku, mpstatsToken);
+    const aggregate = aggregateMpstatsComments(comments);
+    saveOzonAggregate(sku, offerId, {
+      count: aggregate.count,
+      sumRating: aggregate.sumRating,
+      avgRating: aggregate.avgRating,
+    });
+    return {
+      resolvedKey: `sku:${sku}`,
+      count: aggregate.count,
+      avgRating: aggregate.count ? aggregate.avgRating : null,
+    };
+  })();
+
+  ozonRatingInflight.set(skuKey, request);
+  try {
+    return await request;
+  } finally {
+    ozonRatingInflight.delete(skuKey);
+  }
+}
+
+async function buildWbGroupRatings(
+  requestedArticle: string,
+  nmId: string,
+  mpstatsToken: string,
+  mainRating?: Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'>,
+): Promise<ReviewGroupMemberRating[]> {
+  const members = listWbGroupMembers(nmId);
+  if (members.length <= 1) return [];
+
+  const requestedKey = normalizeArticle(requestedArticle);
+  const ratings = await Promise.all(
+    members.map(async (member) => {
+      if (member.nmId === nmId && mainRating) {
+        return {
+          article: member.article,
+          resolvedKey: mainRating.resolvedKey,
+          count: mainRating.count,
+          avgRating: mainRating.avgRating,
+          isRequested: true,
+        };
+      }
+
+      const rating = await fetchMpstatsRatingForWbNmId(member.nmId, member.article, mpstatsToken);
+      return {
+        article: member.article,
+        resolvedKey: rating.resolvedKey,
+        count: rating.count,
+        avgRating: rating.avgRating,
+        isRequested: normalizeArticle(member.article) === requestedKey || member.nmId === nmId,
+      };
+    }),
+  );
+
+  return sortGroupMembersByRating(ratings);
+}
+
+async function buildOzonGroupRatings(
+  requestedArticle: string,
+  clientId: string,
+  apiKey: string,
+  mpstatsToken: string,
+  mainRating?: Pick<ReviewGroupMemberRating, 'count' | 'avgRating' | 'resolvedKey'>,
+  requestedSku?: number,
+): Promise<ReviewGroupMemberRating[]> {
+  const members = await listOzonModelGroupMembers(requestedArticle, clientId, apiKey);
+  if (members.length <= 1) return [];
+
+  const requestedKey = normalizeArticle(requestedArticle);
+  const ratings = await Promise.all(
+    members.map(async (member) => {
+      if (requestedSku !== undefined && member.sku === requestedSku && mainRating) {
+        return {
+          article: member.offerId,
+          resolvedKey: mainRating.resolvedKey,
+          count: mainRating.count,
+          avgRating: mainRating.avgRating,
+          isRequested: true,
+        };
+      }
+
+      const rating = await fetchMpstatsRatingForOzonSku(member.sku, member.offerId, mpstatsToken);
+      return {
+        article: member.offerId,
+        resolvedKey: rating.resolvedKey,
+        count: rating.count,
+        avgRating: rating.avgRating,
+        isRequested: normalizeArticle(member.offerId) === requestedKey,
+      };
+    }),
+  );
+
+  return sortGroupMembersByRating(ratings);
 }
 
 export async function fetchWbReviewRating(
   article: string,
-  apiToken: string,
+  mpstatsToken: string,
 ): Promise<ReviewRatingLookupResult> {
   const trimmed = article.trim();
   if (!trimmed) {
@@ -426,12 +436,12 @@ export async function fetchWbReviewRating(
       count: 0,
       avgRating: null,
       syncedAt: null,
-      source: 'wb_api',
+      source: 'mpstats',
     };
   }
 
-  if (!apiToken) {
-    throw new Error('Не настроен WB_API_TOKEN');
+  if (!mpstatsToken) {
+    throw new Error('Не настроен MPSTATS_TOKEN');
   }
 
   const nmId = lookupWbNmId(trimmed);
@@ -441,12 +451,41 @@ export async function fetchWbReviewRating(
     );
   }
 
-  const feedbacks = await fetchWbFeedbacksForNmId(apiToken, nmId).catch((error) => {
-    throw new Error(formatAxiosError(error, 'WB'));
+  let comments;
+  try {
+    comments = await fetchMpstatsWbComments(Number(nmId), mpstatsToken);
+  } catch (error) {
+    const cached = lookupWbReviewRating(trimmed);
+    if (cached.resolvedKey && (cached.count > 0 || cached.syncedAt)) {
+      return {
+        ...cached,
+        source: 'cache',
+        stale: true,
+        groupError: error instanceof Error ? error.message : 'MPSTATS недоступен',
+      };
+    }
+    throw error;
+  }
+
+  const aggregate = aggregateMpstatsComments(comments);
+  const syncedAt = saveWbAggregate(nmId, trimmed, {
+    count: aggregate.count,
+    sumRating: aggregate.sumRating,
+    avgRating: aggregate.avgRating,
   });
 
-  const aggregate = aggregateWbFeedbacks(feedbacks);
-  const syncedAt = saveWbAggregate(nmId, trimmed, aggregate);
+  let groupMembers: ReviewGroupMemberRating[] | undefined;
+  let groupError: string | undefined;
+  try {
+    const members = await buildWbGroupRatings(trimmed, nmId, mpstatsToken, {
+      resolvedKey: `nmId:${nmId}`,
+      count: aggregate.count,
+      avgRating: aggregate.count ? aggregate.avgRating : null,
+    });
+    groupMembers = members.length > 0 ? members : undefined;
+  } catch (error) {
+    groupError = error instanceof Error ? error.message : 'Не удалось загрузить группу';
+  }
 
   return {
     marketplace: 'wb',
@@ -455,7 +494,9 @@ export async function fetchWbReviewRating(
     count: aggregate.count,
     avgRating: aggregate.count ? aggregate.avgRating : null,
     syncedAt,
-    source: 'wb_api',
+    source: 'mpstats',
+    groupMembers,
+    groupError,
   };
 }
 
@@ -513,18 +554,6 @@ export function lookupWbReviewRating(article: string): ReviewRatingLookupResult 
   };
 }
 
-export function aggregateWbFeedbacksForTest(feedbacks: WbFeedback[]): ReviewAggregate {
-  return aggregateWbFeedbacks(feedbacks);
-}
-
-export function formatWbAxiosErrorForTest(error: unknown): string {
-  return formatAxiosError(error, 'WB');
-}
-
-export function getWbRetryDelayMsForTest(error: unknown): number {
-  return getWbRetryDelayMs(error);
-}
-
 export async function fetchOzonReviewRating(
   article: string,
   mpstatsToken: string,
@@ -553,7 +582,31 @@ export async function fetchOzonReviewRating(
     throw new Error('Не удалось определить SKU Ozon для артикула');
   }
 
-  const comments = await fetchMpstatsOzonComments(resolved.sku, mpstatsToken);
+  let comments;
+  try {
+    comments = await fetchMpstatsOzonComments(resolved.sku, mpstatsToken);
+  } catch (error) {
+    const cache = getReviewsCache();
+    const offerKey = normalizeArticle(resolved.offerId ?? trimmed);
+    const cached =
+      cache.ozon.bySku[String(resolved.sku)] ??
+      cache.ozon.byOfferId[offerKey];
+    if (cached && (cached.count > 0 || cache.ozon.updatedAt)) {
+      return {
+        marketplace: 'ozon',
+        article: trimmed,
+        resolvedKey: resolved.resolvedKey,
+        count: cached.count,
+        avgRating: cached.count ? cached.avgRating : null,
+        syncedAt: cache.ozon.updatedAt || null,
+        source: 'cache',
+        stale: true,
+        groupError: error instanceof Error ? error.message : 'MPSTATS недоступен',
+      };
+    }
+    throw error;
+  }
+
   const aggregate = aggregateMpstatsComments(comments);
   const syncedAt = saveOzonAggregate(
     resolved.sku,
@@ -565,6 +618,26 @@ export async function fetchOzonReviewRating(
     },
   );
 
+  let groupMembers: ReviewGroupMemberRating[] | undefined;
+  let groupError: string | undefined;
+  try {
+    const members = await buildOzonGroupRatings(
+      trimmed,
+      ozonClientId,
+      ozonApiKey,
+      mpstatsToken,
+      {
+        resolvedKey: resolved.resolvedKey,
+        count: aggregate.count,
+        avgRating: aggregate.count ? aggregate.avgRating : null,
+      },
+      resolved.sku,
+    );
+    groupMembers = members.length > 0 ? members : undefined;
+  } catch (error) {
+    groupError = error instanceof Error ? error.message : 'Не удалось загрузить группу';
+  }
+
   return {
     marketplace: 'ozon',
     article: trimmed,
@@ -573,5 +646,7 @@ export async function fetchOzonReviewRating(
     avgRating: aggregate.count ? aggregate.avgRating : null,
     syncedAt,
     source: 'mpstats',
+    groupMembers,
+    groupError,
   };
 }

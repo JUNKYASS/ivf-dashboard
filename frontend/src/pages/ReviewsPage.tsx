@@ -3,8 +3,8 @@ import { api } from '../api/client';
 import { CollapsibleSection } from '../components/CollapsibleSection';
 import type {
   MarketplaceApiPublicConfig,
+  ReviewGroupMemberRating,
   ReviewRatingLookupResult,
-  ReviewsCacheStatus,
 } from '../types';
 
 function formatCacheDate(iso: string | null): string {
@@ -19,7 +19,6 @@ function formatRating(value: number | null): string {
 
 function formatSource(source: ReviewRatingLookupResult['source']): string {
   if (source === 'mpstats') return 'MPSTATS';
-  if (source === 'wb_api') return 'WB API';
   return 'кэш';
 }
 
@@ -41,7 +40,9 @@ function RatingResult({ label, result, loading, error }: RatingResultProps) {
 
   if (!result) return null;
 
-  if (result.count === 0) {
+  const hasGroup = Boolean(result.groupMembers && result.groupMembers.length > 0);
+
+  if (result.count === 0 && !hasGroup) {
     return (
       <p className="reviews-result-message">
         {label}: отзывов не найдено (источник: {formatSource(result.source)})
@@ -51,19 +52,53 @@ function RatingResult({ label, result, loading, error }: RatingResultProps) {
 
   return (
     <div className="reviews-result-card">
-      <p className="reviews-result-title">{label}</p>
-      <p className="reviews-result-rating">{formatRating(result.avgRating)}</p>
-      <p className="reviews-result-meta">
-        {result.count} отзывов · {formatSource(result.source)} ·{' '}
-        {formatCacheDate(result.syncedAt)}
-      </p>
+      {result.count > 0 ? (
+        <>
+          <p className="reviews-result-rating">{formatRating(result.avgRating)}</p>
+          <p className="reviews-result-meta">
+            {result.count} отзывов · {formatSource(result.source)}
+            {result.stale ? ' (устаревшие данные)' : ''} · {formatCacheDate(result.syncedAt)}
+          </p>
+        </>
+      ) : (
+        <p className="reviews-result-message">
+          {label}: отзывов не найдено (источник: {formatSource(result.source)})
+        </p>
+      )}
+      {result.groupError && (
+        <p className="reviews-result-warning">{result.groupError}</p>
+      )}
+      {hasGroup && <GroupRatingsList members={result.groupMembers!} />}
+    </div>
+  );
+}
+
+function GroupRatingsList({ members }: { members: ReviewGroupMemberRating[] }) {
+  return (
+    <div className="reviews-group-block">
+      <p className="reviews-group-title">Объединенные артикулы</p>
+      <ul className="reviews-group-list">
+        {members.map((member) => (
+          <li
+            key={`${member.resolvedKey}:${member.article}`}
+            className={`reviews-group-item${member.isRequested ? ' is-requested' : ''}`}
+          >
+            <span className="reviews-group-article">{member.article}</span>
+            <span className="reviews-group-rating">
+              {member.count > 0 ? formatRating(member.avgRating) : '—'}
+            </span>
+            <span className="reviews-group-count">
+              {member.count > 0 ? `${member.count} отз.` : 'нет отзывов'}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 export function ReviewsPage() {
   const [apiConfig, setApiConfig] = useState<MarketplaceApiPublicConfig | null>(null);
-  const [reviewsCache, setReviewsCache] = useState<ReviewsCacheStatus | null>(null);
   const [wbArticle, setWbArticle] = useState('');
   const [ozonArticle, setOzonArticle] = useState('');
   const [wbResult, setWbResult] = useState<ReviewRatingLookupResult | null>(null);
@@ -74,20 +109,16 @@ export function ReviewsPage() {
   const [ozonError, setOzonError] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  const loadStatus = useCallback(async () => {
-    const [config, status] = await Promise.all([
-      api.getMarketplaceApiConfig(),
-      api.getReviewsCacheStatus(),
-    ]);
+  const loadConfig = useCallback(async () => {
+    const config = await api.getMarketplaceApiConfig();
     setApiConfig(config);
-    setReviewsCache(status);
   }, []);
 
   useEffect(() => {
-    void loadStatus().catch((error) => {
+    void loadConfig().catch((error) => {
       setPageError(error instanceof Error ? error.message : 'Ошибка загрузки');
     });
-  }, [loadStatus]);
+  }, [loadConfig]);
 
   const handleCheckWb = async () => {
     if (!wbArticle.trim()) return;
@@ -96,7 +127,6 @@ export function ReviewsPage() {
     try {
       const result = await api.lookupReviewRating('wb', wbArticle.trim());
       setWbResult(result);
-      await loadStatus();
     } catch (error) {
       setWbError(error instanceof Error ? error.message : 'Ошибка проверки WB');
       setWbResult(null);
@@ -112,7 +142,6 @@ export function ReviewsPage() {
     try {
       const result = await api.lookupReviewRating('ozon', ozonArticle.trim());
       setOzonResult(result);
-      await loadStatus();
     } catch (error) {
       setOzonError(error instanceof Error ? error.message : 'Ошибка проверки Ozon');
       setOzonResult(null);
@@ -134,31 +163,22 @@ export function ReviewsPage() {
 
       <CollapsibleSection
         title="Средний рейтинг по артикулу"
-        summary="WB — Seller API, Ozon — MPSTATS"
+        summary="WB и Ozon — MPSTATS"
         defaultOpen
       >
-        <p className="section-hint">
-          Введите артикул маркетплейса. Для WB нужен кэш товаров и токен с категорией «Отзывы и
-          вопросы» (Настройки). Для Ozon — MPSTATS и ключи Ozon Seller API при вводе offer_id.
+        <p className="stickers-hint">
+          Введите артикул товара на маркетплейсе чтобы увидеть его средний рейтинг (без привязки к
+          группе). Ниже также показываются рейтинги артикулов из той же объединённой карточки (в подсчете участвуют только отзывы с текстом). Данные
+          MPSTATS.
         </p>
 
         <div className="reviews-sync-grid">
           <div className="reviews-sync-block">
             <h3 className="reviews-sync-title">WB</h3>
-            <p className="reviews-sync-meta">
-              {reviewsCache?.wb.reviewCount
-                ? `${reviewsCache.wb.reviewCount} отзывов в кэше · ${formatCacheDate(reviewsCache.wb.updatedAt)}`
-                : 'Проверка по артикулу через WB API'}
-            </p>
           </div>
 
           <div className="reviews-sync-block">
             <h3 className="reviews-sync-title">Ozon</h3>
-            <p className="reviews-sync-meta">
-              {apiConfig?.mpstats.apiTokenConfigured
-                ? 'Данные запрашиваются через MPSTATS при проверке'
-                : 'Настройте MPSTATS_TOKEN в разделе «Настройки»'}
-            </p>
             {ozonNeedsOfferResolver && !apiConfig?.ozon.clientIdConfigured && (
               <p className="reviews-result-error">
                 Для offer_id также нужны OZON_CLIENT_ID и OZON_API_KEY
@@ -170,19 +190,19 @@ export function ReviewsPage() {
         <div className="reviews-check-grid">
           <div className="reviews-check-block">
             <div className="field">
-              <label htmlFor="wb-review-article">Артикул маркетплейса (WB)</label>
               <input
                 id="wb-review-article"
                 className="clay-input"
+                aria-label="Артикул маркетплейса WB"
                 value={wbArticle}
                 onChange={(e) => setWbArticle(e.target.value)}
-                placeholder="LT-240105-PST-1-1x1orange"
+                placeholder="Арт. маркетплейса"
               />
             </div>
             <button
               type="button"
               className="clay-btn"
-              disabled={wbLoading || !wbArticle.trim() || !apiConfig?.wb.apiTokenConfigured}
+              disabled={wbLoading || !wbArticle.trim() || !apiConfig?.mpstats.apiTokenConfigured}
               onClick={() => void handleCheckWb()}
             >
               {wbLoading ? 'Проверка...' : 'Проверить WB'}
@@ -192,13 +212,13 @@ export function ReviewsPage() {
 
           <div className="reviews-check-block">
             <div className="field">
-              <label htmlFor="ozon-review-article">Артикул маркетплейса (Ozon)</label>
               <input
                 id="ozon-review-article"
                 className="clay-input"
+                aria-label="Артикул маркетплейса Ozon"
                 value={ozonArticle}
                 onChange={(e) => setOzonArticle(e.target.value)}
-                placeholder="LT-240105-PST-1-1x1orange"
+                placeholder="Арт. маркетплейса"
               />
             </div>
             <button

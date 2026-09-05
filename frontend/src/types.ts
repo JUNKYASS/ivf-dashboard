@@ -104,6 +104,14 @@ export type ReviewsCacheStatus = {
   ozon: ReviewsMarketplaceCacheStatus;
 };
 
+export type ReviewGroupMemberRating = {
+  article: string;
+  resolvedKey: string;
+  count: number;
+  avgRating: number | null;
+  isRequested: boolean;
+};
+
 export type ReviewRatingLookupResult = {
   marketplace: 'wb' | 'ozon';
   article: string;
@@ -111,7 +119,10 @@ export type ReviewRatingLookupResult = {
   count: number;
   avgRating: number | null;
   syncedAt: string | null;
-  source: 'cache' | 'mpstats' | 'wb_api';
+  source: 'cache' | 'mpstats';
+  groupMembers?: ReviewGroupMemberRating[];
+  groupError?: string;
+  stale?: boolean;
 };
 
 export type MarketplaceApiPublicConfig = {

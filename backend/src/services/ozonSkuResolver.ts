@@ -30,6 +30,10 @@ function pickOzonSku(item: OzonProductInfo): number | null {
   return fromSources?.sku ?? null;
 }
 
+export function pickOzonSkuFromInfo(item: OzonProductInfo): number | null {
+  return pickOzonSku(item);
+}
+
 function ozonHeaders(clientId: string, apiKey: string) {
   return {
     'Client-Id': clientId,

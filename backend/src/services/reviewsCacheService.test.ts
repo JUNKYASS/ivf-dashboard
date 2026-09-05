@@ -1,16 +1,72 @@
 import assert from 'node:assert/strict';
-import { AxiosError } from 'axios';
 import { test } from 'node:test';
 import {
   addRatingToAggregate,
-  aggregateWbFeedbacksForTest,
   createEmptyAggregate,
-  formatWbAxiosErrorForTest,
-  getWbRetryDelayMsForTest,
   lookupWbReviewRating,
   roundRating,
+  sortGroupMembersByRating,
 } from './reviewsCacheService';
-import { resolveWbNmIdFromCache } from './wbTitlesCacheService';
+import { resolveWbNmIdFromCache, listWbGroupMembersFromCache } from './wbTitlesCacheService';
+
+test('sortGroupMembersByRating orders by ascending rating', () => {
+  const sorted = sortGroupMembersByRating([
+    {
+      article: 'B',
+      resolvedKey: 'nmId:2',
+      count: 10,
+      avgRating: 4.8,
+      isRequested: false,
+    },
+    {
+      article: 'A',
+      resolvedKey: 'nmId:1',
+      count: 5,
+      avgRating: 4.2,
+      isRequested: true,
+    },
+    {
+      article: 'C',
+      resolvedKey: 'nmId:3',
+      count: 0,
+      avgRating: null,
+      isRequested: false,
+    },
+  ]);
+
+  assert.equal(sorted[0]?.article, 'A');
+  assert.equal(sorted[1]?.article, 'B');
+  assert.equal(sorted[2]?.article, 'C');
+});
+
+test('listWbGroupMembersFromCache returns siblings by imtId', () => {
+  const members = listWbGroupMembersFromCache(
+    {
+      nmIdByArticle: {},
+      byArticle: {},
+      byNmId: {},
+      articleByNmId: {
+        '111': 'LT-red',
+        '222': 'LT-blue',
+      },
+      imtIdByNmId: {
+        '111': '9001',
+        '222': '9001',
+      },
+      nmIdsByImtId: {
+        '9001': ['111', '222'],
+      },
+      imageByArticle: {},
+      imageByNmId: {},
+      updatedAt: '',
+    },
+    '111',
+  );
+
+  assert.equal(members.length, 2);
+  assert.equal(members[0]?.article, 'LT-red');
+  assert.equal(members[1]?.article, 'LT-blue');
+});
 
 test('addRatingToAggregate computes average', () => {
   let aggregate = createEmptyAggregate();
@@ -26,59 +82,6 @@ test('addRatingToAggregate computes average', () => {
 test('roundRating keeps two decimals', () => {
   assert.equal(roundRating(4.3333), 4.33);
   assert.equal(roundRating(4.335), 4.34);
-});
-
-test('aggregateWbFeedbacks computes average', () => {
-  const aggregate = aggregateWbFeedbacksForTest([
-    { productValuation: 5 },
-    { productValuation: 3 },
-    { productValuation: 4 },
-  ]);
-
-  assert.equal(aggregate.count, 3);
-  assert.equal(aggregate.avgRating, 4);
-});
-
-test('formatWbAxiosError explains 403', () => {
-  const error = new AxiosError('Request failed with status code 403');
-  error.response = {
-    status: 403,
-    data: {},
-    headers: {},
-    config: { headers: {} } as never,
-    statusText: 'Forbidden',
-  };
-
-  const message = formatWbAxiosErrorForTest(error);
-  assert.match(message, /Отзывы и вопросы/);
-});
-
-test('formatWbAxiosError explains 429 with retry hint', () => {
-  const error = new AxiosError('Request failed with status code 429');
-  error.response = {
-    status: 429,
-    data: {},
-    headers: { 'x-ratelimit-retry': '5' },
-    config: { headers: {} } as never,
-    statusText: 'Too Many Requests',
-  };
-
-  const message = formatWbAxiosErrorForTest(error);
-  assert.match(message, /превышен лимит/);
-  assert.match(message, /5 сек/);
-});
-
-test('getWbRetryDelayMs reads x-ratelimit-retry', () => {
-  const error = new AxiosError('Request failed with status code 429');
-  error.response = {
-    status: 429,
-    data: {},
-    headers: { 'x-ratelimit-retry': '4' },
-    config: { headers: {} } as never,
-    statusText: 'Too Many Requests',
-  };
-
-  assert.equal(getWbRetryDelayMsForTest(error), 4000);
 });
 
 test('resolveWbNmIdFromCache matches article via title fallback', () => {

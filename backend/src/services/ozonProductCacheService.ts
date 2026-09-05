@@ -4,6 +4,7 @@ import path from 'path';
 import { OZON_API_BASE_URL } from '../constants';
 import { OZON_PRODUCT_CACHE_PATH, STORAGE_DIR } from '../types';
 import { normalizeArticle } from './mappingLookupService';
+import { pickOzonSkuFromInfo } from './ozonSkuResolver';
 
 type OzonListItem = {
   product_id?: number;
@@ -21,8 +22,14 @@ type OzonProductListResponse = {
 type OzonProductInfo = {
   offer_id?: string;
   name?: string;
+  sku?: number;
+  sources?: Array<{ sku?: number }>;
   primary_image?: string | string[];
   images?: string[];
+  model_info?: {
+    model_id?: number;
+    count?: number;
+  };
 };
 
 type OzonProductInfoListResponse = {
@@ -35,6 +42,9 @@ type OzonProductInfoListResponse = {
 export type OzonProductCacheFile = {
   updatedAt: string;
   imageByOfferId: Record<string, string>;
+  modelIdByOfferId: Record<string, number>;
+  offerIdsByModelId: Record<string, string[]>;
+  skuByOfferId: Record<string, number>;
 };
 
 export type OzonProductCacheStatus = {
@@ -56,13 +66,22 @@ function sleep(ms: number): Promise<void> {
 }
 
 function emptyCache(): OzonProductCacheFile {
-  return { updatedAt: '', imageByOfferId: {} };
+  return {
+    updatedAt: '',
+    imageByOfferId: {},
+    modelIdByOfferId: {},
+    offerIdsByModelId: {},
+    skuByOfferId: {},
+  };
 }
 
 function normalizeCache(raw: Partial<OzonProductCacheFile> | null | undefined): OzonProductCacheFile {
   return {
     updatedAt: raw?.updatedAt ?? '',
     imageByOfferId: raw?.imageByOfferId ?? {},
+    modelIdByOfferId: raw?.modelIdByOfferId ?? {},
+    offerIdsByModelId: raw?.offerIdsByModelId ?? {},
+    skuByOfferId: raw?.skuByOfferId ?? {},
   };
 }
 
@@ -223,9 +242,26 @@ export async function syncOzonProductCache(
     for (const info of infos) {
       const offerId = info.offer_id?.trim();
       if (!offerId) continue;
+
+      const offerKey = normalizeArticle(offerId);
       const imageUrl = pickOzonImageUrl(info);
       if (imageUrl) {
-        cache.imageByOfferId[normalizeArticle(offerId)] = imageUrl;
+        cache.imageByOfferId[offerKey] = imageUrl;
+      }
+
+      const sku = pickOzonSkuFromInfo(info);
+      if (sku) {
+        cache.skuByOfferId[offerKey] = sku;
+      }
+
+      const modelId = info.model_info?.model_id;
+      if (modelId) {
+        cache.modelIdByOfferId[offerKey] = modelId;
+        const modelKey = String(modelId);
+        const existing = cache.offerIdsByModelId[modelKey] ?? [];
+        if (!existing.includes(offerId)) {
+          cache.offerIdsByModelId[modelKey] = [...existing, offerId];
+        }
       }
     }
   }

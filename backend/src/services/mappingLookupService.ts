@@ -5,6 +5,12 @@ import { readWorkbookFile, sheetToMatrix } from './parserUtils';
 export type MappingMatch = {
   supplierArticle: string;
   sheetName: string;
+  marketplaceArticle: string;
+};
+
+export type MappingIndexes = {
+  byMarketplace: Map<string, MappingMatch>;
+  bySupplier: Map<string, string[]>;
 };
 
 export function normalizeArticle(article: string): string {
@@ -38,7 +44,7 @@ export function buildMappingIndex(): Map<string, MappingMatch> {
       if (!supplierArticle) continue;
 
       const key = normalizeArticle(marketplaceArticle);
-      const match: MappingMatch = { supplierArticle, sheetName: sheet.name };
+      const match: MappingMatch = { supplierArticle, sheetName: sheet.name, marketplaceArticle };
 
       if (index.has(key)) {
         const existing = index.get(key)!;

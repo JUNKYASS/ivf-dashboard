@@ -1,0 +1,898 @@
+{
+  "wb": {
+    "updatedAt": "2026-09-05T01:50:27.660Z",
+    "byNmId": {
+      "573049075": {
+        "count": 82,
+        "sumRating": 347,
+        "avgRating": 4.23
+      },
+      "573049076": {
+        "count": 24,
+        "sumRating": 99,
+        "avgRating": 4.13
+      },
+      "593932068": {
+        "count": 18,
+        "sumRating": 88,
+        "avgRating": 4.89
+      },
+      "605135397": {
+        "count": 18,
+        "sumRating": 81,
+        "avgRating": 4.5
+      },
+      "605135398": {
+        "count": 11,
+        "sumRating": 53,
+        "avgRating": 4.82
+      },
+      "620873445": {
+        "count": 18,
+        "sumRating": 83,
+        "avgRating": 4.61
+      },
+      "658303715": {
+        "count": 3,
+        "sumRating": 13,
+        "avgRating": 4.33
+      },
+      "843758142": {
+        "count": 4,
+        "sumRating": 13,
+        "avgRating": 3.25
+      },
+      "843758143": {
+        "count": 1,
+        "sumRating": 2,
+        "avgRating": 2
+      },
+      "1250156405": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156406": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156407": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156408": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "1250156409": {
+        "count": 2,
+        "sumRating": 6,
+        "avgRating": 3
+      },
+      "1250156410": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156411": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156412": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156413": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156414": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156415": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156416": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156417": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156418": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156419": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "1250156420": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156421": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156422": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156423": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156424": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156425": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156426": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "1250156427": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156428": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156429": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156430": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1250156431": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1326740650": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1326740651": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1326740652": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1326740653": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1466808156": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1466844310": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1466849791": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "1466853225": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      }
+    },
+    "byArticle": {
+      "605135397": {
+        "count": 39,
+        "sumRating": 195,
+        "avgRating": 5
+      },
+      "605135398": {
+        "count": 11,
+        "sumRating": 53.02,
+        "avgRating": 4.82
+      },
+      "lt-240105-pst-1-1x1orange": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-1x1orange": {
+        "count": 11,
+        "sumRating": 53,
+        "avgRating": 4.82
+      },
+      "lt-240105-pst-8-1x1white": {
+        "count": 82,
+        "sumRating": 347,
+        "avgRating": 4.23
+      },
+      "lt-240105-pst-8-1x1brown": {
+        "count": 24,
+        "sumRating": 99,
+        "avgRating": 4.13
+      },
+      "lt-240105-pst-8-1x1yellow": {
+        "count": 18,
+        "sumRating": 81,
+        "avgRating": 4.5
+      },
+      "lt-240105-pst-1-1x1white": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-10-1x1orange": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1orange": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1white": {
+        "count": 2,
+        "sumRating": 6,
+        "avgRating": 3
+      },
+      "lt-240105-pst-12-1x1white": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1yellow": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-3x3lightblue": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-3x3lightblue": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-3x3black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-3x3lightblue": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-3x3black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1yellow": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-3x3black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-1x1yellow": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-3x3lightblue": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-3x3black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-1x1pink": {
+        "count": 18,
+        "sumRating": 88,
+        "avgRating": 4.89
+      },
+      "lt-240105-pst-1-1x1black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1gorchich": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-1x1pink": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-1-1x1gorchich": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-1x1brown": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-220105-pst-10-mramorgray": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-1x1gorchich": {
+        "count": 1,
+        "sumRating": 2,
+        "avgRating": 2
+      },
+      "lt-220105-pst-8-mramorgray": {
+        "count": 3,
+        "sumRating": 13,
+        "avgRating": 4.33
+      },
+      "lt-240105-pst-10-1x1black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-1x1black": {
+        "count": 18,
+        "sumRating": 83,
+        "avgRating": 4.61
+      },
+      "lt-240105-pst-12-1x1brown": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-1x1pudrov": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-1x1pudrov": {
+        "count": 4,
+        "sumRating": 13,
+        "avgRating": 3.25
+      },
+      "lt-240105-pst-10-1x1pink": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-220105-pst-1-mramorgray": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1gorchich": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1pudrov": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-12-1x1black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1brown": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1pink": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-220105-pst-12-mramorgray": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1pudrov": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      }
+    },
+    "reviewCount": 184
+  },
+  "ozon": {
+    "updatedAt": "2026-09-05T01:39:52.953Z",
+    "bySku": {
+      "1182639392": {
+        "count": 6,
+        "sumRating": 26,
+        "avgRating": 4.33
+      },
+      "1182659162": {
+        "count": 6,
+        "sumRating": 28,
+        "avgRating": 4.67
+      },
+      "1185712598": {
+        "count": 4,
+        "sumRating": 16,
+        "avgRating": 4
+      },
+      "1261700150": {
+        "count": 13,
+        "sumRating": 61,
+        "avgRating": 4.69
+      },
+      "1317448316": {
+        "count": 27,
+        "sumRating": 130,
+        "avgRating": 4.81
+      },
+      "2115044479": {
+        "count": 535,
+        "sumRating": 2530,
+        "avgRating": 4.73
+      },
+      "2115044554": {
+        "count": 299,
+        "sumRating": 1429,
+        "avgRating": 4.78
+      },
+      "2115044816": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "2115045003": {
+        "count": 84,
+        "sumRating": 403,
+        "avgRating": 4.8
+      },
+      "2115045006": {
+        "count": 52,
+        "sumRating": 245,
+        "avgRating": 4.71
+      },
+      "2115045627": {
+        "count": 67,
+        "sumRating": 321,
+        "avgRating": 4.79
+      },
+      "2115501899": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "3054648550": {
+        "count": 74,
+        "sumRating": 351,
+        "avgRating": 4.74
+      },
+      "3115055618": {
+        "count": 15,
+        "sumRating": 74,
+        "avgRating": 4.93
+      },
+      "3548832756": {
+        "count": 7,
+        "sumRating": 33,
+        "avgRating": 4.71
+      },
+      "3548832837": {
+        "count": 3,
+        "sumRating": 15,
+        "avgRating": 5
+      },
+      "5013793006": {
+        "count": 2,
+        "sumRating": 10,
+        "avgRating": 5
+      },
+      "5013793384": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "5013793209": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "5013793567": {
+        "count": 10,
+        "sumRating": 50,
+        "avgRating": 5
+      },
+      "5013793211": {
+        "count": 3,
+        "sumRating": 15,
+        "avgRating": 5
+      },
+      "5013793457": {
+        "count": 12,
+        "sumRating": 56,
+        "avgRating": 4.67
+      },
+      "5013793140": {
+        "count": 5,
+        "sumRating": 21,
+        "avgRating": 4.2
+      },
+      "5013793183": {
+        "count": 2,
+        "sumRating": 10,
+        "avgRating": 5
+      },
+      "5013793425": {
+        "count": 6,
+        "sumRating": 26,
+        "avgRating": 4.33
+      },
+      "5013792937": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793489": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793779": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "5013793305": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793650": {
+        "count": 3,
+        "sumRating": 15,
+        "avgRating": 5
+      },
+      "5013793389": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5306685932": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5306685091": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "5306685514": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793697": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793167": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793408": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5306685660": {
+        "count": 2,
+        "sumRating": 10,
+        "avgRating": 5
+      },
+      "5013793745": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793383": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5013793412": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "5013793338": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "5578508780": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      }
+    },
+    "byOfferId": {
+      "lt-240105-pst-1-1x1orange": {
+        "count": 2,
+        "sumRating": 10,
+        "avgRating": 5
+      },
+      "lt-240105-pst-8-1x1orange": {
+        "count": 67,
+        "sumRating": 321,
+        "avgRating": 4.79
+      },
+      "lt-240105-pst-8-1x1white": {
+        "count": 535,
+        "sumRating": 2530,
+        "avgRating": 4.73
+      },
+      "lt-240105-pst-8-1x1brown": {
+        "count": 299,
+        "sumRating": 1429,
+        "avgRating": 4.78
+      },
+      "lt-240105-pst-8-1x1black": {
+        "count": 84,
+        "sumRating": 403,
+        "avgRating": 4.8
+      },
+      "lt-240105-pst-8-1x1yellow": {
+        "count": 52,
+        "sumRating": 245,
+        "avgRating": 4.71
+      },
+      "lt-240105-pst-10-1x1orange": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-12-1x1orange": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-1-1x1white": {
+        "count": 10,
+        "sumRating": 50,
+        "avgRating": 5
+      },
+      "lt-240105-pst-10-1x1white": {
+        "count": 3,
+        "sumRating": 15,
+        "avgRating": 5
+      },
+      "lt-240105-pst-12-1x1white": {
+        "count": 12,
+        "sumRating": 56,
+        "avgRating": 4.67
+      },
+      "lt-240105-pst-12-1x1brown": {
+        "count": 5,
+        "sumRating": 21,
+        "avgRating": 4.2
+      },
+      "lt-240105-pst-10-1x1brown": {
+        "count": 2,
+        "sumRating": 10,
+        "avgRating": 5
+      },
+      "lt-240105-pst-1-1x1brown": {
+        "count": 6,
+        "sumRating": 26,
+        "avgRating": 4.33
+      },
+      "кпб-2е4н5777-пс3": {
+        "count": 13,
+        "sumRating": 61,
+        "avgRating": 4.69
+      },
+      "кпб-2е2н77-пс2": {
+        "count": 4,
+        "sumRating": 16,
+        "avgRating": 4
+      },
+      "кпб-2е4н5777-пс2": {
+        "count": 6,
+        "sumRating": 28,
+        "avgRating": 4.67
+      },
+      "кпб-2е4н5777-пс5": {
+        "count": 27,
+        "sumRating": 130,
+        "avgRating": 4.81
+      },
+      "кпб-2е4н5777-пс1": {
+        "count": 6,
+        "sumRating": 26,
+        "avgRating": 4.33
+      },
+      "lt-240105-pst-8-1x1green": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-220105-pst-8-1x1gray": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-1x1pink": {
+        "count": 74,
+        "sumRating": 351,
+        "avgRating": 4.74
+      },
+      "lt-220105-pst-8-mramorgray": {
+        "count": 15,
+        "sumRating": 74,
+        "avgRating": 4.93
+      },
+      "lt-240105-pst-8-1x1gorchich": {
+        "count": 7,
+        "sumRating": 33,
+        "avgRating": 4.71
+      },
+      "lt-240105-pst-8-1x1pudrov": {
+        "count": 3,
+        "sumRating": 15,
+        "avgRating": 5
+      },
+      "lt-240105-pst-12-1x1pudrov": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1green": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1pink": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-1-1x1green": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-1x1yellow": {
+        "count": 3,
+        "sumRating": 15,
+        "avgRating": 5
+      },
+      "lt-240105-pst-10-1x1yellow": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-3x3black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-3x3black": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-12-3x3black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1gorchich": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-10-1x1pudrov": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-3x3black": {
+        "count": 2,
+        "sumRating": 10,
+        "avgRating": 5
+      },
+      "lt-240105-pst-12-1x1pink": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-1-1x1pink": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-12-1x1gorchich": {
+        "count": 1,
+        "sumRating": 5,
+        "avgRating": 5
+      },
+      "lt-240105-pst-1-1x1black": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      },
+      "lt-240105-pst-8-3x3lightblue": {
+        "count": 0,
+        "sumRating": 0,
+        "avgRating": 0
+      }
+    },
+    "reviewCount": 1242
+  }
+}

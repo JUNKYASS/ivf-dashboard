@@ -98,11 +98,6 @@ export const api = {
 
   getReviewsCacheStatus: () => request<ReviewsCacheStatus>('/api/marketplace/reviews/status'),
 
-  syncWbReviewsCache: () =>
-    request<ReviewsCacheStatus['wb']>('/api/marketplace/reviews/wb/sync', {
-      method: 'POST',
-    }),
-
   lookupReviewRating: (marketplace: 'wb' | 'ozon', article: string) => {
     const params = new URLSearchParams({ marketplace, article });
     return request<ReviewRatingLookupResult>(`/api/marketplace/reviews/rating?${params.toString()}`);

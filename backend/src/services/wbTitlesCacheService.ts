@@ -15,6 +15,7 @@ type WbCardPhoto = {
 
 type WbCard = {
   nmID?: number;
+  imtID?: number;
   vendorCode?: string;
   title?: string;
   updatedAt?: string;
@@ -35,8 +36,16 @@ export type WbTitlesCacheFile = {
   byArticle: Record<string, string>;
   byNmId: Record<string, string>;
   nmIdByArticle: Record<string, string>;
+  articleByNmId: Record<string, string>;
+  imtIdByNmId: Record<string, string>;
+  nmIdsByImtId: Record<string, string[]>;
   imageByArticle: Record<string, string>;
   imageByNmId: Record<string, string>;
+};
+
+export type WbGroupMember = {
+  article: string;
+  nmId: string;
 };
 
 export type WbTitlesCacheStatus = {
@@ -63,6 +72,9 @@ function emptyCache(): WbTitlesCacheFile {
     byArticle: {},
     byNmId: {},
     nmIdByArticle: {},
+    articleByNmId: {},
+    imtIdByNmId: {},
+    nmIdsByImtId: {},
     imageByArticle: {},
     imageByNmId: {},
   };
@@ -74,6 +86,9 @@ function normalizeCache(raw: Partial<WbTitlesCacheFile> | null | undefined): WbT
     byArticle: raw?.byArticle ?? {},
     byNmId: raw?.byNmId ?? {},
     nmIdByArticle: raw?.nmIdByArticle ?? {},
+    articleByNmId: raw?.articleByNmId ?? {},
+    imtIdByNmId: raw?.imtIdByNmId ?? {},
+    nmIdsByImtId: raw?.nmIdsByImtId ?? {},
     imageByArticle: raw?.imageByArticle ?? {},
     imageByNmId: raw?.imageByNmId ?? {},
   };
@@ -166,6 +181,23 @@ export function resolveWbNmIdFromCache(
 
 export function lookupWbNmId(article: string): string | null {
   return resolveWbNmIdFromCache(getWbTitlesCache(), article);
+}
+
+export function listWbGroupMembers(nmId: string): WbGroupMember[] {
+  return listWbGroupMembersFromCache(getWbTitlesCache(), nmId);
+}
+
+export function listWbGroupMembersFromCache(
+  cache: Pick<WbTitlesCacheFile, 'imtIdByNmId' | 'nmIdsByImtId' | 'articleByNmId'>,
+  nmId: string,
+): WbGroupMember[] {
+  const imtId = cache.imtIdByNmId[nmId];
+  const nmIds = imtId ? cache.nmIdsByImtId[imtId] ?? [nmId] : [nmId];
+
+  return nmIds.map((memberNmId) => ({
+    nmId: memberNmId,
+    article: cache.articleByNmId[memberNmId] ?? memberNmId,
+  }));
 }
 
 export function lookupWbProductImage(article: string, nmId?: number): string | null {
@@ -268,7 +300,9 @@ function addCardsToCache(cache: WbTitlesCacheFile, cards: WbCard[]): void {
         cache.imageByArticle[articleKey] = imageUrl;
       }
       if (card.nmID !== undefined) {
-        cache.nmIdByArticle[articleKey] = String(card.nmID);
+        const nmKey = String(card.nmID);
+        cache.nmIdByArticle[articleKey] = nmKey;
+        cache.articleByNmId[nmKey] = card.vendorCode.trim();
       }
     }
 
@@ -279,6 +313,15 @@ function addCardsToCache(cache: WbTitlesCacheFile, cards: WbCard[]): void {
       }
       if (imageUrl) {
         cache.imageByNmId[nmKey] = imageUrl;
+      }
+
+      if (card.imtID !== undefined) {
+        const imtKey = String(card.imtID);
+        cache.imtIdByNmId[nmKey] = imtKey;
+        const existing = cache.nmIdsByImtId[imtKey] ?? [];
+        if (!existing.includes(nmKey)) {
+          cache.nmIdsByImtId[imtKey] = [...existing, nmKey];
+        }
       }
     }
   }

@@ -14,7 +14,6 @@ import {
   fetchOzonReviewRating,
   fetchWbReviewRating,
   getReviewsCacheStatus,
-  syncWbReviewsCache,
 } from '../services/reviewsCacheService';
 import { getWbTitlesCacheStatus, syncWbTitlesCache } from '../services/wbTitlesCacheService';
 import { generateStickers, StickersError } from '../services/stickersService';
@@ -87,22 +86,6 @@ router.get('/marketplace/reviews/status', (_req, res) => {
   res.json(getReviewsCacheStatus());
 });
 
-router.post('/marketplace/reviews/wb/sync', async (_req, res, next) => {
-  try {
-    const credentials = getMarketplaceApiCredentials();
-    if (!credentials.wbApiToken) {
-      res.status(400).json({ error: 'Не настроен WB_API_TOKEN' });
-      return;
-    }
-
-    const status = await syncWbReviewsCache(credentials.wbApiToken);
-    res.json(status);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Ошибка синхронизации отзывов WB';
-    res.status(400).json({ error: message });
-  }
-});
-
 router.get('/marketplace/reviews/rating', async (req, res) => {
   const marketplace = req.query.marketplace;
   const article = typeof req.query.article === 'string' ? req.query.article : '';
@@ -110,7 +93,7 @@ router.get('/marketplace/reviews/rating', async (req, res) => {
   if (marketplace === 'wb') {
     try {
       const credentials = getMarketplaceApiCredentials();
-      const result = await fetchWbReviewRating(article, credentials.wbApiToken);
+      const result = await fetchWbReviewRating(article, credentials.mpstatsToken);
       res.json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Ошибка проверки отзывов WB';
