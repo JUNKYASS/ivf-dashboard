@@ -20,6 +20,7 @@ import {
   messageFromResponseData,
   sleep,
 } from './stickersShared';
+import { sortByProductType } from './stickersSortService';
 
 export type OzonStickersResult = {
   pdfBytes: Uint8Array;
@@ -56,6 +57,8 @@ export async function generateOzonStickers(
       throw new StickersError('Нет нераспечатанных этикеток Ozon');
     }
   }
+
+  postings = sortByProductType(postings, (posting) => posting.primaryArticle);
 
   const { doc, font } = await createLabelsDocument();
   const skipped: string[] = [];
@@ -128,6 +131,7 @@ type OzonListResponse = {
 type OzonPostingLabel = {
   postingNumber: string;
   caption: string;
+  primaryArticle: string;
 };
 
 async function listAwaitingDeliverPostings(
@@ -185,6 +189,7 @@ async function listAwaitingDeliverPostings(
       lines.push({
         postingNumber,
         caption: formatArticleCaption(items),
+        primaryArticle: items[0]?.article ?? '',
       });
     }
 

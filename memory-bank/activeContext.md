@@ -1,11 +1,12 @@
 # Active Context
 
-## Текущий фокус
-`reviews-average-rating-page` — PLAN доработок: lookup по артикулу маркетплейса, sync WB в Settings, fix 403, UI cleanup.
+## Focus
+`stickers-sort-by-product-type` — сортировка PDF этикеток по типу товара.
 
-## Ключевые находки
-- `LT-240105-PST-1-1x1orange` есть в wb-titles cache, но `nmIdByArticle` пуст → lookup ломается
-- WB 403 = токен без категории «Отзывы и вопросы»
+## Change
+Перед генерацией PDF этикетки сортируются: поставщик (ORDER_GROUP_KEYS) → отрез/рулон → артикул. LT-отрезы идут блоком, постельное белье — отдельным блоком.
 
-## Next
-`/build` фазы A–C
+## Files
+- `backend/src/services/stickersSortService.ts` (new)
+- `backend/src/services/ozonLabelsService.ts`
+- `backend/src/services/wbLabelsService.ts`

@@ -20,6 +20,7 @@ import {
   chunk,
   sleep,
 } from './stickersShared';
+import { sortByProductType } from './stickersSortService';
 
 type WbOrder = {
   id?: number;
@@ -47,6 +48,7 @@ type WbStatusResponse = {
 
 type WbOrderLabel = {
   id: number;
+  article: string;
   caption: string;
   supplyId: string;
 };
@@ -125,6 +127,8 @@ async function generateWbStickersUnsafe(
       throw new StickersError('Нет нераспечатанных этикеток WB');
     }
   }
+
+  targetOrders = sortByProductType(targetOrders, (order) => order.article);
 
   const { doc, font } = await createLabelsDocument();
   const skipped: string[] = [];
@@ -217,6 +221,7 @@ async function listRecentOrders(apiToken: string): Promise<WbOrderLabel[]> {
       if (!article || order.id === undefined) continue;
       orders.push({
         id: order.id,
+        article,
         caption: formatArticleCaption([{ article, quantity: 1 }]),
         supplyId: order.supplyId?.trim() ?? '',
       });
