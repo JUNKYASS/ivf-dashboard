@@ -7,7 +7,11 @@ import {
   FONT_SIZE_MIN,
   LABEL_HEIGHT_PT,
   LABEL_WIDTH_PT,
+  YM_LABEL_HEIGHT_PT,
+  YM_LABEL_WIDTH_PT,
+  appendYmPdfSource,
   composeLabelsFromSourcePdf,
+  createLabelsDocument,
   fitCaption,
   formatArticleCaption,
   mapCaptionsToPages,
@@ -49,6 +53,26 @@ test('mapCaptionsToPages zips equal counts', () => {
 
 test('mapCaptionsToPages repeats caption when pages divide evenly', () => {
   assert.deepEqual(mapCaptionsToPages(['a', 'b'], 4), ['a', 'a', 'b', 'b']);
+});
+
+test('appendYmPdfSource uses portrait 40x58 with side band', async () => {
+  const source = await PDFDocument.create();
+  const sourcePage = source.addPage([160, 232]);
+  sourcePage.drawRectangle({ x: 20, y: 20, width: 80, height: 120 });
+  const sourceBytes = await source.save();
+
+  const { doc, font } = await createLabelsDocument();
+  await appendYmPdfSource(doc, font, sourceBytes, [
+    'GT-220120-BZ-8-LineBlue, ART-B x2',
+  ]);
+  const out = await PDFDocument.load(await doc.save());
+  const page = out.getPages()[0];
+  assert.ok(page);
+  const { width, height } = page.getSize();
+  assert.ok(Math.abs(width - YM_LABEL_WIDTH_PT) < 0.05);
+  assert.ok(Math.abs(height - YM_LABEL_HEIGHT_PT) < 0.05);
+  assert.ok(width < height);
+  assert.ok(BAND_HEIGHT_PT < width);
 });
 
 test('composeLabelsFromSourcePdf uses 58x40 page size', async () => {

@@ -59,3 +59,11 @@ test('markPrinted deduplicates ids in one call', () => {
   ) as { ozon: Record<string, string> };
   assert.equal(Object.keys(store.ozon).filter((id) => id === 'Z').length, 1);
 });
+
+test('markPrinted supports ym bucket', () => {
+  printedLabels.markPrinted('ym', ['62803804160']);
+  assert.equal(printedLabels.isPrinted('ym', '62803804160'), true);
+  assert.deepEqual(printedLabels.filterUnprinted('ym', ['62803804160', '62801614403']), [
+    '62801614403',
+  ]);
+});

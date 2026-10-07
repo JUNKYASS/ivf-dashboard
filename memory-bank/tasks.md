@@ -1,17 +1,19 @@
 # Tasks
 
 ## Current Task
-- **ID:** `stickers-sort-by-product-type`
-- **Status:** BUILD complete
-- **Complexity:** Level 1
+- **ID:** `stickers-yandex-market`
+- **Status:** REFLECT complete
+- **Complexity:** Level 2
 
 ## Goal
-Сортировать этикетки Ozon/WB по типу товара (поставщик → отрез/рулон → артикул), а не в порядке API маркетплейса.
+Этикетки YM: portrait 40×58 + боковой артикул (multi-SKU).
 
 ## Checklist
-- [x] `stickersSortService.ts` — группировка как в `/orders`
-- [x] Сортировка в `ozonLabelsService.ts` и `wbLabelsService.ts`
-- [x] Тесты `stickersSortService.test.ts`
+- [x] `ymLabelsService.ts`
+- [x] YM portrait 40×58, side band, no rotate
+- [x] Multi-article caption (formatArticleCaption)
+- [x] Tests 44/44, build OK
+- [x] Reflection updated
 
 ## Next Step
-→ `/reflect` (опционально)
+→ `/archive`

@@ -98,6 +98,7 @@ export function OrdersPage() {
           <div className="marketplace-status-list">
             <MarketplaceStatusLine label="Ozon" status={ordersData.marketplaceStatus.ozon} />
             <MarketplaceStatusLine label="WB" status={ordersData.marketplaceStatus.wb} />
+            <MarketplaceStatusLine label="Яндекс Маркет" status={ordersData.marketplaceStatus.ym} />
           </div>
 
           {ordersData.groups.length === 0 ? (

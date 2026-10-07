@@ -5,6 +5,10 @@ export const STICKERS_BATCH_PAUSE_MS = 250;
 export const OZON_LABEL_BATCH_SIZE = 20;
 export const WB_STICKER_BATCH_SIZE = 100;
 export const WB_STATUS_BATCH_SIZE = 100;
+export const YM_LABEL_BATCH_SIZE = 50;
+export const YM_LABEL_FORMAT = 'A9_HORIZONTALLY';
+export const YM_REPORT_POLL_MS = 2000;
+export const YM_REPORT_MAX_WAIT_MS = 120_000;
 
 export type StickersScope = 'all' | 'unprinted';
 

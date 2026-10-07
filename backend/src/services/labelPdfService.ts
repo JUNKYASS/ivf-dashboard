@@ -1,6 +1,7 @@
 import {
   PDFDocument,
   StandardFonts,
+  degrees,
   rgb,
   type PDFFont,
   type PDFPage,
@@ -10,6 +11,9 @@ const MM = 72 / 25.4;
 
 export const LABEL_WIDTH_PT = 58 * MM;
 export const LABEL_HEIGHT_PT = 40 * MM;
+/** YM A9: portrait 3:4 (40×58 мм), не landscape как Ozon/WB. */
+export const YM_LABEL_WIDTH_PT = 40 * MM;
+export const YM_LABEL_HEIGHT_PT = 58 * MM;
 export const BAND_HEIGHT_PT = 6.5 * MM;
 export const PAGE_INSET_PT = 1 * MM;
 export const BAND_PAD_X_PT = 1.5 * MM;
@@ -114,6 +118,44 @@ export async function createLabelsDocument(): Promise<{
 }
 
 export async function appendPdfSource(
+  doc: PDFDocument,
+  font: PDFFont,
+  sourcePdfBytes: Uint8Array,
+  captions: string[],
+): Promise<void> {
+  await appendPdfSourceInternal(doc, font, sourcePdfBytes, captions);
+}
+
+/** YM A9: portrait 40×58, оригинальная ориентация PDF, артикул слева вертикально. */
+export async function appendYmPdfSource(
+  doc: PDFDocument,
+  font: PDFFont,
+  sourcePdfBytes: Uint8Array,
+  captions: string[],
+): Promise<void> {
+  const source = await PDFDocument.load(sourcePdfBytes);
+  const sourcePages = source.getPages();
+  if (sourcePages.length === 0) return;
+
+  const embeddedPages = await doc.embedPages(sourcePages);
+  const pageCaptions = mapCaptionsToPages(captions, embeddedPages.length);
+
+  for (let i = 0; i < embeddedPages.length; i += 1) {
+    const embedded = embeddedPages[i];
+    if (!embedded) continue;
+    const page = doc.addPage([YM_LABEL_WIDTH_PT, YM_LABEL_HEIGHT_PT]);
+    const box = containRectWithLeftBand(
+      embedded.width,
+      embedded.height,
+      YM_LABEL_WIDTH_PT,
+      YM_LABEL_HEIGHT_PT,
+    );
+    page.drawPage(embedded, box);
+    drawArticleSideBand(page, font, pageCaptions[i] ?? '', YM_LABEL_HEIGHT_PT);
+  }
+}
+
+async function appendPdfSourceInternal(
   doc: PDFDocument,
   font: PDFFont,
   sourcePdfBytes: Uint8Array,
@@ -230,13 +272,33 @@ function containRect(origW: number, origH: number): { x: number; y: number; widt
   };
 }
 
+function containRectWithLeftBand(
+  origW: number,
+  origH: number,
+  pageWidth: number,
+  pageHeight: number,
+): { x: number; y: number; width: number; height: number } {
+  const availW = pageWidth - BAND_HEIGHT_PT - 2 * PAGE_INSET_PT;
+  const availH = pageHeight - 2 * PAGE_INSET_PT;
+  const scale = Math.min(availW / Math.max(origW, 1), availH / Math.max(origH, 1));
+  const width = origW * scale;
+  const height = origH * scale;
+  return {
+    x: BAND_HEIGHT_PT + PAGE_INSET_PT + (availW - width) / 2,
+    y: PAGE_INSET_PT + (availH - height) / 2,
+    width,
+    height,
+  };
+}
+
 function drawContained(
   page: PDFPage,
   origW: number,
   origH: number,
   draw: (box: { x: number; y: number; width: number; height: number }) => void,
+  contain: typeof containRect = containRect,
 ): void {
-  draw(containRect(origW, origH));
+  draw(contain(origW, origH));
 }
 
 function drawArticleBand(page: PDFPage, font: PDFFont, caption: string): void {
@@ -272,5 +334,52 @@ function drawArticleBand(page: PDFPage, font: PDFFont, caption: string): void {
       color: rgb(0, 0, 0),
     });
     y -= lineHeight;
+  }
+}
+
+function drawArticleSideBand(
+  page: PDFPage,
+  font: PDFFont,
+  caption: string,
+  pageHeight: number,
+): void {
+  const bandW = BAND_HEIGHT_PT;
+
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width: bandW,
+    height: pageHeight,
+    color: rgb(1, 1, 1),
+  });
+
+  page.drawLine({
+    start: { x: bandW, y: 0 },
+    end: { x: bandW, y: pageHeight },
+    thickness: HAIRLINE_PT,
+    color: rgb(0, 0, 0),
+  });
+
+  const maxAlongHeight = pageHeight - 2 * BAND_PAD_X_PT;
+  const { size, lines } = fitCaption(caption, font, maxAlongHeight);
+  if (lines.length === 0) return;
+
+  const lineStep = size * 1.15;
+  const blockW = size + (lines.length - 1) * lineStep;
+  let x = (bandW + blockW) / 2 - size * 0.15;
+
+  for (const line of lines) {
+    if (!line) continue;
+    const textLen = font.widthOfTextAtSize(line, size);
+    const y = (pageHeight - textLen) / 2;
+    page.drawText(line, {
+      x,
+      y,
+      size,
+      font,
+      rotate: degrees(90),
+      color: rgb(0, 0, 0),
+    });
+    x -= lineStep;
   }
 }

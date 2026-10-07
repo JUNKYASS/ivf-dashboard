@@ -68,7 +68,7 @@ export type GenerateResponse = {
 };
 
 export type RawOrderLine = {
-  marketplace: 'ozon' | 'wb';
+  marketplace: 'ozon' | 'wb' | 'ym';
   postingNumber: string;
   marketplaceArticle: string;
   productTitle: string | null;
@@ -119,6 +119,7 @@ export type OrdersFetchResponse = {
   marketplaceStatus: {
     ozon: MarketplaceFetchStatus;
     wb: MarketplaceFetchStatus;
+    ym: MarketplaceFetchStatus;
   };
   groups: OrderGroup[];
 };
@@ -129,6 +130,7 @@ export const CONFIG_PATH = process.env.CONFIG_PATH ?? path.join(BACKEND_ROOT, 'c
 export const MAPPING_PATH = path.join(STORAGE_DIR, 'mapping.xlsx');
 export const WB_TITLES_CACHE_PATH = path.join(STORAGE_DIR, 'wb-titles-cache.json');
 export const OZON_PRODUCT_CACHE_PATH = path.join(STORAGE_DIR, 'ozon-product-cache.json');
+export const YM_PRODUCT_CACHE_PATH = path.join(STORAGE_DIR, 'ym-product-cache.json');
 export const REVIEWS_CACHE_PATH = path.join(STORAGE_DIR, 'reviews-cache.json');
 export const OUTPUT_DIR = path.join(STORAGE_DIR, 'output');
 export const OZON_OUTPUT_PATH = path.join(OUTPUT_DIR, 'ozon-stocks.xlsx');

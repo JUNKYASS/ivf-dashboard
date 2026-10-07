@@ -21,6 +21,7 @@ import {
 import { getMarketplaceApiCredentials } from './marketplaceEnvService';
 import { fetchOzonOrders } from './ozonOrdersService';
 import { fetchWbOrders } from './wbOrdersService';
+import { fetchYmOrders } from './ymOrdersService';
 import { buildWarehouseStockIndex } from './warehouseStockService';
 import { classifyFabricSaleType } from './fabricSaleTypeService';
 
@@ -163,7 +164,7 @@ function buildGroups(
 }
 
 async function fetchMarketplaceLines(
-  marketplace: 'ozon' | 'wb',
+  marketplace: 'ozon' | 'wb' | 'ym',
   fetcher: () => Promise<RawOrderLine[]>,
 ): Promise<{ lines: RawOrderLine[]; status: MarketplaceFetchStatus }> {
   try {
@@ -195,7 +196,7 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
   const mappingIndex = buildMappingIndex();
   const warehouseIndex = buildWarehouseStockIndex();
 
-  const [ozonResult, wbResult] = await Promise.all([
+  const [ozonResult, wbResult, ymResult] = await Promise.all([
     credentials.ozonClientId && credentials.ozonApiKey
       ? fetchMarketplaceLines('ozon', () =>
           fetchOzonOrders(credentials.ozonClientId, credentials.ozonApiKey),
@@ -216,9 +217,18 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
             message: 'Не настроен WB_API_TOKEN',
           },
         },
+    credentials.ymApiToken
+      ? fetchMarketplaceLines('ym', () => fetchYmOrders(credentials.ymApiToken))
+      : {
+          lines: [] as RawOrderLine[],
+          status: {
+            status: 'error' as const,
+            message: 'Не настроен YM_API_TOKEN',
+          },
+        },
   ]);
 
-  const rawLines = [...ozonResult.lines, ...wbResult.lines];
+  const rawLines = [...ozonResult.lines, ...wbResult.lines, ...ymResult.lines];
   const aggregated = aggregateRawLines(rawLines);
 
   const classified: ClassifiedLine[] = aggregated.map((line) => ({
@@ -230,6 +240,7 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
     marketplaceStatus: {
       ozon: ozonResult.status,
       wb: wbResult.status,
+      ym: ymResult.status,
     },
     groups: buildGroups(classified, warehouseIndex),
   };

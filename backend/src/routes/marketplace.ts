@@ -11,6 +11,10 @@ import {
   syncOzonProductCache,
 } from '../services/ozonProductCacheService';
 import {
+  getYmProductCacheStatus,
+  syncYmProductCache,
+} from '../services/ymProductCacheService';
+import {
   fetchOzonReviewRating,
   fetchWbReviewRating,
   getReviewsCacheStatus,
@@ -31,23 +35,32 @@ router.get('/config/marketplace-api', (_req, res) => {
     ...getMarketplaceApiPublicConfig(),
     wbTitlesCache: getWbTitlesCacheStatus(),
     ozonProductCache: getOzonProductCacheStatus(),
+    ymProductCache: getYmProductCacheStatus(),
     reviewsCache: getReviewsCacheStatus(),
   });
 });
 
 router.post('/config/marketplace-api', (req, res) => {
-  const { ozonClientId, ozonApiKey, wbApiToken, mpstatsToken } = req.body as {
+  const { ozonClientId, ozonApiKey, wbApiToken, ymApiToken, mpstatsToken } = req.body as {
     ozonClientId?: string;
     ozonApiKey?: string;
     wbApiToken?: string;
+    ymApiToken?: string;
     mpstatsToken?: string;
   };
 
-  const config = updateMarketplaceApiConfig({ ozonClientId, ozonApiKey, wbApiToken, mpstatsToken });
+  const config = updateMarketplaceApiConfig({
+    ozonClientId,
+    ozonApiKey,
+    wbApiToken,
+    ymApiToken,
+    mpstatsToken,
+  });
   res.json({
     ...config,
     wbTitlesCache: getWbTitlesCacheStatus(),
     ozonProductCache: getOzonProductCacheStatus(),
+    ymProductCache: getYmProductCacheStatus(),
     reviewsCache: getReviewsCacheStatus(),
   });
 });
@@ -76,6 +89,21 @@ router.post('/marketplace/ozon-products/sync', async (_req, res, next) => {
     }
 
     const status = await syncOzonProductCache(credentials.ozonClientId, credentials.ozonApiKey);
+    res.json(status);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/marketplace/ym-products/sync', async (_req, res, next) => {
+  try {
+    const credentials = getMarketplaceApiCredentials();
+    if (!credentials.ymApiToken) {
+      res.status(400).json({ error: 'Не настроен YM_API_TOKEN' });
+      return;
+    }
+
+    const status = await syncYmProductCache(credentials.ymApiToken);
     res.json(status);
   } catch (error) {
     next(error);
@@ -156,7 +184,7 @@ router.post('/marketplace/orders/fetch', async (_req, res, next) => {
 
 router.post('/marketplace/stickers/:marketplace', async (req, res, next) => {
   const marketplace = req.params.marketplace;
-  if (marketplace !== 'ozon' && marketplace !== 'wb') {
+  if (marketplace !== 'ozon' && marketplace !== 'wb' && marketplace !== 'ym') {
     res.status(400).json({ error: 'Неизвестный маркетплейс' });
     return;
   }

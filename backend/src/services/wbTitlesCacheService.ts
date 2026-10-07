@@ -31,6 +31,11 @@ type WbCardsListResponse = {
   };
 };
 
+type WbContentApiErrorBody = {
+  error?: boolean;
+  errorText?: string;
+};
+
 export type WbTitlesCacheFile = {
   updatedAt: string;
   byArticle: Record<string, string>;
@@ -219,14 +224,49 @@ async function waitForRateLimit(): Promise<void> {
   }
 }
 
-function getRetryDelayMs(error: unknown): number {
-  if (!isAxiosError(error) || error.response?.status !== 429) {
-    return 0;
+function isRetryableWbContentError(error: unknown): boolean {
+  if (!isAxiosError(error)) {
+    return true;
   }
 
-  const headers = error.response.headers;
-  const retrySec = Number(headers['x-ratelimit-retry'] ?? headers['x-ratelimit-reset'] ?? 3);
-  return Math.max(retrySec, 1) * 1000;
+  const status = error.response?.status;
+  return status === 429 || status === 500 || status === 502 || status === 503 || status === undefined;
+}
+
+function getRetryDelayMs(attempt: number, error: unknown): number {
+  if (isAxiosError(error) && error.response?.status === 429) {
+    const headers = error.response.headers;
+    const retrySec = Number(headers['x-ratelimit-retry'] ?? headers['x-ratelimit-reset'] ?? 3);
+    return Math.max(retrySec, 1) * 1000;
+  }
+
+  return Math.min(1000 * 2 ** attempt, 8000);
+}
+
+function formatWbContentError(error: unknown): string {
+  if (!isAxiosError(error)) {
+    return error instanceof Error ? error.message : 'Ошибка WB Content API';
+  }
+
+  const status = error.response?.status;
+  const apiMessage = (error.response?.data as WbContentApiErrorBody | undefined)?.errorText?.trim();
+
+  if (status === 401) {
+    return 'WB: неверный или просроченный API-токен';
+  }
+  if (status === 403) {
+    return 'WB: у токена нет доступа к Content API (нужна категория «Контент»)';
+  }
+  if (status === 429) {
+    return 'WB: превышен лимит запросов Content API';
+  }
+  if (status === 500 || status === 502 || status === 503) {
+    return apiMessage
+      ? `WB Content API временно недоступен: ${apiMessage}`
+      : 'WB Content API временно недоступен. Попробуйте через минуту';
+  }
+
+  return apiMessage ? `WB Content API: ${apiMessage}` : `WB Content API: ${error.message}`;
 }
 
 async function fetchCardsPage(
@@ -258,12 +298,11 @@ async function fetchCardsPage(
 
       return response.data;
     } catch (error) {
-      const retryDelayMs = getRetryDelayMs(error);
-      if (retryDelayMs > 0 && attempt < MAX_RETRIES - 1) {
-        await sleep(retryDelayMs);
+      if (isRetryableWbContentError(error) && attempt < MAX_RETRIES - 1) {
+        await sleep(getRetryDelayMs(attempt, error));
         continue;
       }
-      throw error;
+      throw new Error(formatWbContentError(error));
     }
   }
 

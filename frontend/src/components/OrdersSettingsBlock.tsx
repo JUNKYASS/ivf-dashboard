@@ -5,6 +5,7 @@ import type {
   OzonProductCacheStatus,
   WarehouseStockStatus,
   WbTitlesCacheStatus,
+  YmProductCacheStatus,
 } from '../types';
 import { FileUploadField } from './FileUploadField';
 import { CollapsibleSection } from './CollapsibleSection';
@@ -66,6 +67,11 @@ export function OrdersSettingsBlock({
     config?.ozonProductCache ?? null,
   );
   const [ozonSyncMessage, setOzonSyncMessage] = useState<string | null>(null);
+  const [syncingYmProducts, setSyncingYmProducts] = useState(false);
+  const [ymProductCache, setYmProductCache] = useState<YmProductCacheStatus | null>(
+    config?.ymProductCache ?? null,
+  );
+  const [ymSyncMessage, setYmSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (config?.wbTitlesCache) {
@@ -78,6 +84,12 @@ export function OrdersSettingsBlock({
       setOzonProductCache(config.ozonProductCache);
     }
   }, [config?.ozonProductCache]);
+
+  useEffect(() => {
+    if (config?.ymProductCache) {
+      setYmProductCache(config.ymProductCache);
+    }
+  }, [config?.ymProductCache]);
 
   const handleSyncTitles = async () => {
     setSyncingTitles(true);
@@ -110,6 +122,23 @@ export function OrdersSettingsBlock({
       setOzonSyncMessage(error instanceof Error ? error.message : 'Ошибка синхронизации');
     } finally {
       setSyncingOzonProducts(false);
+    }
+  };
+
+  const handleSyncYmProducts = async () => {
+    setSyncingYmProducts(true);
+    setYmSyncMessage(null);
+    try {
+      const status = await api.syncYmProductCache();
+      setYmProductCache(status);
+      setYmSyncMessage(`Кэш обновлён: ${status.count} фото`);
+      if (config) {
+        onConfigChange({ ...config, ymProductCache: status });
+      }
+    } catch (error) {
+      setYmSyncMessage(error instanceof Error ? error.message : 'Ошибка синхронизации');
+    } finally {
+      setSyncingYmProducts(false);
     }
   };
 
@@ -162,6 +191,28 @@ export function OrdersSettingsBlock({
           {syncingOzonProducts ? 'Синхронизация...' : 'Обновить кэш Ozon'}
         </button>
         {ozonSyncMessage && <span className="wb-titles-cache-message">{ozonSyncMessage}</span>}
+      </div>
+
+      <div className="orders-settings-divider" />
+
+      <h3 className="orders-settings-subtitle">Кэш товаров Яндекс Маркет</h3>
+      <div className="wb-titles-cache-block wb-titles-cache-block-nested">
+        <p className="wb-titles-cache-meta">
+          {ymProductCache?.count ?? 0} фото, {formatCacheDate(ymProductCache?.updatedAt ?? null)}
+        </p>
+        <p className="wb-titles-cache-hint">
+          Яндекс Маркет не отдаёт картинки в заказах. Кэш обновляется отдельно и используется при
+          загрузке заказов без дополнительных запросов.
+        </p>
+        <button
+          type="button"
+          className="clay-btn clay-btn-secondary"
+          disabled={syncingYmProducts || !config?.ym.apiTokenConfigured}
+          onClick={() => void handleSyncYmProducts()}
+        >
+          {syncingYmProducts ? 'Синхронизация...' : 'Обновить кэш Яндекс Маркет'}
+        </button>
+        {ymSyncMessage && <span className="wb-titles-cache-message">{ymSyncMessage}</span>}
       </div>
 
       <div className="orders-settings-divider" />

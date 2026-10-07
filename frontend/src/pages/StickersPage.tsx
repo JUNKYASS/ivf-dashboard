@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 
-type Marketplace = 'ozon' | 'wb';
+type Marketplace = 'ozon' | 'wb' | 'ym';
 type StickersScope = 'all' | 'unprinted';
 type LoadingKey = `${Marketplace}-${StickersScope}` | null;
 
 const MARKETPLACE_LABELS: Record<Marketplace, string> = {
   ozon: 'Ozon',
   wb: 'Wildberries',
+  ym: 'Яндекс Маркет',
 };
 
 export function StickersPage() {
@@ -78,13 +79,16 @@ export function StickersPage() {
         {renderMarketplaceBlock('ozon')}
         <hr className="stickers-marketplace-divider" />
         {renderMarketplaceBlock('wb')}
+        <hr className="stickers-marketplace-divider" />
+        {renderMarketplaceBlock('ym')}
 
         <p className="stickers-hint">
-          Ozon — FBS «Готово к отгрузке». WB — «на сборке». Ключи API задаются в{' '}
+          Ozon — FBS «Готово к отгрузке». WB — «на сборке». Яндекс Маркет — FBS, статус
+          «ожидают сборки» (PROCESSING/STARTED). Ключи API задаются в{' '}
           <Link to="/settings">Настройках</Link>. Печать 58×40 мм, масштаб 100%, без
           вписывания в страницу. В кабинете Ozon лучше сразу выбрать формат этикетки 58×40.
           Нераспечатанные — этикетки, которые ещё не скачивали из этого приложения; скачивание
-          в кабинете Ozon/WB не учитывается.
+          в кабинете маркетплейса не учитывается.
         </p>
       </section>
 

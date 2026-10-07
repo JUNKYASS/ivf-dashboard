@@ -1,7 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 
-const MARKETPLACE_ENV_KEYS = ['OZON_CLIENT_ID', 'OZON_API_KEY', 'WB_API_TOKEN', 'MPSTATS_TOKEN'] as const;
+const MARKETPLACE_ENV_KEYS = [
+  'OZON_CLIENT_ID',
+  'OZON_API_KEY',
+  'WB_API_TOKEN',
+  'YM_API_TOKEN',
+  'MPSTATS_TOKEN',
+] as const;
 type MarketplaceEnvKey = (typeof MARKETPLACE_ENV_KEYS)[number];
 
 function getEnvPath(): string {
@@ -25,6 +31,10 @@ export type MarketplaceApiPublicConfig = {
     apiTokenConfigured: boolean;
     apiTokenMask: string | null;
   };
+  ym: {
+    apiTokenConfigured: boolean;
+    apiTokenMask: string | null;
+  };
   mpstats: {
     apiTokenConfigured: boolean;
     apiTokenMask: string | null;
@@ -35,6 +45,7 @@ export type MarketplaceApiCredentials = {
   ozonClientId: string;
   ozonApiKey: string;
   wbApiToken: string;
+  ymApiToken: string;
   mpstatsToken: string;
 };
 
@@ -42,6 +53,7 @@ export function getMarketplaceApiPublicConfig(): MarketplaceApiPublicConfig {
   const clientId = process.env.OZON_CLIENT_ID;
   const apiKey = process.env.OZON_API_KEY;
   const apiToken = process.env.WB_API_TOKEN;
+  const ymApiToken = process.env.YM_API_TOKEN;
   const mpstatsToken = process.env.MPSTATS_TOKEN;
 
   return {
@@ -55,6 +67,10 @@ export function getMarketplaceApiPublicConfig(): MarketplaceApiPublicConfig {
       apiTokenConfigured: Boolean(apiToken),
       apiTokenMask: maskSecret(apiToken),
     },
+    ym: {
+      apiTokenConfigured: Boolean(ymApiToken),
+      apiTokenMask: maskSecret(ymApiToken),
+    },
     mpstats: {
       apiTokenConfigured: Boolean(mpstatsToken),
       apiTokenMask: maskSecret(mpstatsToken),
@@ -67,6 +83,7 @@ export function getMarketplaceApiCredentials(): MarketplaceApiCredentials {
     ozonClientId: process.env.OZON_CLIENT_ID ?? '',
     ozonApiKey: process.env.OZON_API_KEY ?? '',
     wbApiToken: process.env.WB_API_TOKEN ?? '',
+    ymApiToken: process.env.YM_API_TOKEN ?? '',
     mpstatsToken: process.env.MPSTATS_TOKEN ?? '',
   };
 }
@@ -75,6 +92,7 @@ export function updateMarketplaceApiConfig(updates: {
   ozonClientId?: string;
   ozonApiKey?: string;
   wbApiToken?: string;
+  ymApiToken?: string;
   mpstatsToken?: string;
 }): MarketplaceApiPublicConfig {
   const envUpdates: Partial<Record<MarketplaceEnvKey, string>> = {};
@@ -87,6 +105,9 @@ export function updateMarketplaceApiConfig(updates: {
   }
   if (updates.wbApiToken?.trim()) {
     envUpdates.WB_API_TOKEN = updates.wbApiToken.trim();
+  }
+  if (updates.ymApiToken?.trim()) {
+    envUpdates.YM_API_TOKEN = updates.ymApiToken.trim();
   }
   if (updates.mpstatsToken?.trim()) {
     envUpdates.MPSTATS_TOKEN = updates.mpstatsToken.trim();

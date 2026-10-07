@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { BACKEND_ROOT } from '../types';
 
-export type PrintedMarketplace = 'ozon' | 'wb';
+export type PrintedMarketplace = 'ozon' | 'wb' | 'ym';
 
 /** Заказы в stickers — окно 30 дней; TTL с запасом на «забыли нажать generate». */
 export const PRINTED_LABELS_TTL_DAYS = 45;
@@ -12,6 +12,7 @@ const PRINTED_LABELS_TTL_MS = PRINTED_LABELS_TTL_DAYS * 24 * 60 * 60 * 1000;
 type PrintedLabelsStore = {
   ozon: Record<string, string>;
   wb: Record<string, string>;
+  ym: Record<string, string>;
 };
 
 function storageDir(): string {
@@ -23,7 +24,7 @@ function printedLabelsPath(): string {
 }
 
 function emptyStore(): PrintedLabelsStore {
-  return { ozon: {}, wb: {} };
+  return { ozon: {}, wb: {}, ym: {} };
 }
 
 function readStore(): PrintedLabelsStore {
@@ -36,6 +37,7 @@ function readStore(): PrintedLabelsStore {
     return {
       ozon: parsed.ozon ?? {},
       wb: parsed.wb ?? {},
+      ym: parsed.ym ?? {},
     };
   } catch {
     return emptyStore();
@@ -67,6 +69,7 @@ function pruneExpiredBucket(bucket: Record<string, string>, nowMs = Date.now()):
 export function pruneExpiredEntries(store: PrintedLabelsStore, nowMs = Date.now()): void {
   store.ozon = pruneExpiredBucket(store.ozon, nowMs);
   store.wb = pruneExpiredBucket(store.wb, nowMs);
+  store.ym = pruneExpiredBucket(store.ym, nowMs);
 }
 
 export function isPrinted(marketplace: PrintedMarketplace, id: string): boolean {

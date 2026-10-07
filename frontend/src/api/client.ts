@@ -4,6 +4,7 @@ import type {
   MarketplaceApiPublicConfig,
   OrdersFetchResponse,
   OzonProductCacheStatus,
+  YmProductCacheStatus,
   ReviewRatingLookupResult,
   ReviewsCacheStatus,
   WarehouseStockStatus,
@@ -61,6 +62,7 @@ export const api = {
     ozonClientId?: string;
     ozonApiKey?: string;
     wbApiToken?: string;
+    ymApiToken?: string;
     mpstatsToken?: string;
   }) =>
     request<MarketplaceApiPublicConfig>('/api/config/marketplace-api', {
@@ -96,6 +98,11 @@ export const api = {
       method: 'POST',
     }),
 
+  syncYmProductCache: () =>
+    request<YmProductCacheStatus>('/api/marketplace/ym-products/sync', {
+      method: 'POST',
+    }),
+
   getReviewsCacheStatus: () => request<ReviewsCacheStatus>('/api/marketplace/reviews/status'),
 
   lookupReviewRating: (marketplace: 'wb' | 'ozon', article: string) => {
@@ -104,7 +111,7 @@ export const api = {
   },
 
   generateStickers: async (
-    marketplace: 'ozon' | 'wb',
+    marketplace: 'ozon' | 'wb' | 'ym',
     options: { scope?: 'all' | 'unprinted' } = {},
   ) => {
     const controller = new AbortController();
@@ -137,7 +144,7 @@ export const api = {
 };
 
 export function buildStickersFilename(
-  marketplace: 'ozon' | 'wb',
+  marketplace: 'ozon' | 'wb' | 'ym',
   scope: 'all' | 'unprinted' = 'all',
 ): string {
   const now = new Date();

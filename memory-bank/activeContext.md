@@ -1,12 +1,12 @@
 # Active Context
 
 ## Focus
-`stickers-sort-by-product-type` — сортировка PDF этикеток по типу товара.
+`stickers-yandex-market` — YM portrait 40×58, side vertical caption.
 
-## Change
-Перед генерацией PDF этикетки сортируются: поставщик (ORDER_GROUP_KEYS) → отрез/рулон → артикул. LT-отрезы идут блоком, постельное белье — отдельным блоком.
+## Layout
+- Page: 40×58 mm (portrait 3:4)
+- YM PDF: native orientation, no rotate
+- Caption: left band, vertical text, multi-SKU via formatArticleCaption
 
-## Files
-- `backend/src/services/stickersSortService.ts` (new)
-- `backend/src/services/ozonLabelsService.ts`
-- `backend/src/services/wbLabelsService.ts`
+## Next
+→ `/archive`

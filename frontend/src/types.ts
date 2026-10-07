@@ -91,6 +91,12 @@ export type OzonProductCacheStatus = {
   count: number;
 };
 
+export type YmProductCacheStatus = {
+  exists: boolean;
+  updatedAt: string | null;
+  count: number;
+};
+
 export type ReviewsMarketplaceCacheStatus = {
   exists: boolean;
   updatedAt: string | null;
@@ -136,12 +142,17 @@ export type MarketplaceApiPublicConfig = {
     apiTokenConfigured: boolean;
     apiTokenMask: string | null;
   };
+  ym: {
+    apiTokenConfigured: boolean;
+    apiTokenMask: string | null;
+  };
   mpstats: {
     apiTokenConfigured: boolean;
     apiTokenMask: string | null;
   };
   wbTitlesCache: WbTitlesCacheStatus;
   ozonProductCache: OzonProductCacheStatus;
+  ymProductCache: YmProductCacheStatus;
   reviewsCache: ReviewsCacheStatus;
 };
 
@@ -193,6 +204,7 @@ export type OrdersFetchResponse = {
   marketplaceStatus: {
     ozon: MarketplaceFetchStatus;
     wb: MarketplaceFetchStatus;
+    ym: MarketplaceFetchStatus;
   };
   groups: OrderGroup[];
 };

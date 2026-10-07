@@ -3,10 +3,11 @@ import { generateOzonStickers } from './ozonLabelsService';
 import { markPrinted } from './printedLabelsService';
 import { StickersError, type StickersScope } from './stickersShared';
 import { generateWbStickers } from './wbLabelsService';
+import { generateYmStickers } from './ymLabelsService';
 
 export { StickersError } from './stickersShared';
 
-export type StickersMarketplace = 'ozon' | 'wb';
+export type StickersMarketplace = 'ozon' | 'wb' | 'ym';
 
 export type StickersGenerateResult = {
   pdfBytes: Uint8Array;
@@ -42,11 +43,24 @@ export async function generateStickers(
     };
   }
 
-  if (!credentials.wbApiToken) {
-    throw new StickersError('Не настроен WB_API_TOKEN');
+  if (marketplace === 'wb') {
+    if (!credentials.wbApiToken) {
+      throw new StickersError('Не настроен WB_API_TOKEN');
+    }
+    const result = await generateWbStickers(credentials.wbApiToken, scope);
+    markPrinted('wb', result.printedIds);
+    return {
+      pdfBytes: result.pdfBytes,
+      count: result.count,
+      skipped: result.skipped,
+    };
   }
-  const result = await generateWbStickers(credentials.wbApiToken, scope);
-  markPrinted('wb', result.printedIds);
+
+  if (!credentials.ymApiToken) {
+    throw new StickersError('Не настроен YM_API_TOKEN');
+  }
+  const result = await generateYmStickers(credentials.ymApiToken, scope);
+  markPrinted('ym', result.printedIds);
   return {
     pdfBytes: result.pdfBytes,
     count: result.count,
