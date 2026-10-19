@@ -19,7 +19,8 @@ import {
   normalizeArticle,
 } from './mappingLookupService';
 import { getMarketplaceApiCredentials } from './marketplaceEnvService';
-import { fetchOzonOrders } from './ozonOrdersService';
+import { lookupOzonProductImage } from './ozonProductCacheService';
+import { fetchOzonOrders, formatOzonOrdersStatusMessage } from './ozonOrdersService';
 import { fetchWbOrders } from './wbOrdersService';
 import { fetchYmOrders } from './ymOrdersService';
 import { buildWarehouseStockIndex } from './warehouseStockService';
@@ -92,6 +93,14 @@ function classifyArticle(
   }
 
   return { groupKey: 'unmapped', supplierArticle };
+}
+
+function attachOzonImagesFromCache(lines: RawOrderLine[]): RawOrderLine[] {
+  return lines.map((line) =>
+    line.marketplace === 'ozon'
+      ? { ...line, imageUrl: lookupOzonProductImage(line.marketplaceArticle) }
+      : line,
+  );
 }
 
 function aggregateRawLines(lines: RawOrderLine[]): AggregatedLine[] {
@@ -196,18 +205,41 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
   const mappingIndex = buildMappingIndex();
   const warehouseIndex = buildWarehouseStockIndex();
 
-  const [ozonResult, wbResult, ymResult] = await Promise.all([
+  const ozonPromise =
     credentials.ozonClientId && credentials.ozonApiKey
-      ? fetchMarketplaceLines('ozon', () =>
-          fetchOzonOrders(credentials.ozonClientId, credentials.ozonApiKey),
-        )
-      : {
+      ? (async () => {
+          try {
+            const { lines, mode } = await fetchOzonOrders(
+              credentials.ozonClientId,
+              credentials.ozonApiKey,
+            );
+            return {
+              lines,
+              status: {
+                status: 'success' as const,
+                positionCount: lines.length,
+                message: formatOzonOrdersStatusMessage(lines.length, mode),
+              },
+            };
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'Неизвестная ошибка';
+            console.error('[orders] Ошибка ozon:', error);
+            return {
+              lines: [] as RawOrderLine[],
+              status: { status: 'error' as const, message },
+            };
+          }
+        })()
+      : Promise.resolve({
           lines: [] as RawOrderLine[],
           status: {
             status: 'error' as const,
             message: 'Не настроены OZON_CLIENT_ID / OZON_API_KEY',
           },
-        },
+        });
+
+  const [ozonResult, wbResult, ymResult] = await Promise.all([
+    ozonPromise,
     credentials.wbApiToken
       ? fetchMarketplaceLines('wb', () => fetchWbOrders(credentials.wbApiToken))
       : {
@@ -228,7 +260,11 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
         },
   ]);
 
-  const rawLines = [...ozonResult.lines, ...wbResult.lines, ...ymResult.lines];
+  const rawLines = [
+    ...attachOzonImagesFromCache(ozonResult.lines),
+    ...wbResult.lines,
+    ...ymResult.lines,
+  ];
   const aggregated = aggregateRawLines(rawLines);
 
   const classified: ClassifiedLine[] = aggregated.map((line) => ({

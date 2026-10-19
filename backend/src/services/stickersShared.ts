@@ -55,7 +55,13 @@ export function messageFromResponseData(data: unknown): string | null {
 
 export function isRetryableLabelError(message: string): boolean {
   const lower = message.toLowerCase();
-  return lower.includes("aren't ready") || lower.includes('not ready') || lower.includes('не готов');
+  return (
+    lower.includes("aren't ready") ||
+    lower.includes('not ready') ||
+    lower.includes('не готов') ||
+    lower.includes('не все этикетки готовы') ||
+    lower.includes('in_progress')
+  );
 }
 
 function parseErrorBody(data: unknown): string | null {

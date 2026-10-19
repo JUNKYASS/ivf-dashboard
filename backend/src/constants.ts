@@ -115,6 +115,8 @@ export const FABRIC_MATERIAL_CODE_ORDER = [
 ] as const;
 
 export const OZON_API_BASE_URL = 'https://api-seller.ozon.ru';
+/** Окно для /v4/posting/fbs/list при сборе заказов (awaiting_packaging). */
+export const OZON_ORDERS_LOOKBACK_DAYS = 7;
 export const WB_API_BASE_URL = 'https://marketplace-api.wildberries.ru';
 export const WB_CONTENT_API_BASE_URL = 'https://content-api.wildberries.ru';
 export const MPSTATS_API_BASE_URL = 'https://mpstats.io/api/analytics/v1';

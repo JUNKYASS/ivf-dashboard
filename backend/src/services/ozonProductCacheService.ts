@@ -1,9 +1,9 @@
-import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { OZON_API_BASE_URL } from '../constants';
 import { OZON_PRODUCT_CACHE_PATH, STORAGE_DIR } from '../types';
 import { normalizeArticle } from './mappingLookupService';
+import { ozonPost, ozonRequestHeaders } from './ozonHttpClient';
 import { pickOzonSkuFromInfo } from './ozonSkuResolver';
 
 type OzonListItem = {
@@ -55,15 +55,9 @@ export type OzonProductCacheStatus = {
 
 const LIST_LIMIT = 1000;
 const INFO_BATCH_SIZE = 100;
-const MIN_REQUEST_INTERVAL_MS = 400;
 const MAX_LIST_PAGES = 200;
 
-let lastRequestAt = 0;
 let memoryCache: OzonProductCacheFile | null = null;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function emptyCache(): OzonProductCacheFile {
   return {
@@ -143,43 +137,21 @@ function pickOzonImageUrl(item: OzonProductInfo): string | null {
   return fromImages?.trim() || null;
 }
 
-async function waitForRateLimit(): Promise<void> {
-  const elapsed = Date.now() - lastRequestAt;
-  if (elapsed < MIN_REQUEST_INTERVAL_MS) {
-    await sleep(MIN_REQUEST_INTERVAL_MS - elapsed);
-  }
-}
-
-function ozonHeaders(clientId: string, apiKey: string) {
-  return {
-    'Client-Id': clientId,
-    'Api-Key': apiKey,
-    'Content-Type': 'application/json',
-  };
-}
-
 async function fetchProductListPage(
   clientId: string,
   apiKey: string,
   lastId: string,
 ): Promise<OzonProductListResponse> {
-  await waitForRateLimit();
-  lastRequestAt = Date.now();
-
-  const response = await axios.post<OzonProductListResponse>(
+  return ozonPost<OzonProductListResponse>(
     `${OZON_API_BASE_URL}/v3/product/list`,
     {
       filter: { visibility: 'ALL' },
       last_id: lastId,
       limit: LIST_LIMIT,
     },
-    {
-      headers: ozonHeaders(clientId, apiKey),
-      timeout: 60_000,
-    },
+    ozonRequestHeaders(clientId, apiKey),
+    { timeout: 60_000 },
   );
-
-  return response.data;
 }
 
 async function fetchProductInfoBatch(
@@ -187,23 +159,18 @@ async function fetchProductInfoBatch(
   apiKey: string,
   offerIds: string[],
 ): Promise<OzonProductInfo[]> {
-  await waitForRateLimit();
-  lastRequestAt = Date.now();
-
-  const response = await axios.post<OzonProductInfoListResponse>(
+  const data = await ozonPost<OzonProductInfoListResponse>(
     `${OZON_API_BASE_URL}/v3/product/info/list`,
     {
       offer_id: offerIds,
       product_id: [],
       sku: [],
     },
-    {
-      headers: ozonHeaders(clientId, apiKey),
-      timeout: 60_000,
-    },
+    ozonRequestHeaders(clientId, apiKey),
+    { timeout: 60_000 },
   );
 
-  return response.data.items ?? response.data.result?.items ?? [];
+  return data.items ?? data.result?.items ?? [];
 }
 
 export async function syncOzonProductCache(
