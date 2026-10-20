@@ -20,7 +20,7 @@ import {
 } from './mappingLookupService';
 import { getMarketplaceApiCredentials } from './marketplaceEnvService';
 import { lookupOzonProductImage } from './ozonProductCacheService';
-import { fetchOzonOrders, formatOzonOrdersStatusMessage } from './ozonOrdersService';
+import { fetchOzonOrders } from './ozonOrdersService';
 import { fetchWbOrders } from './wbOrdersService';
 import { fetchYmOrders } from './ymOrdersService';
 import { buildWarehouseStockIndex } from './warehouseStockService';
@@ -209,7 +209,7 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
     credentials.ozonClientId && credentials.ozonApiKey
       ? (async () => {
           try {
-            const { lines, mode } = await fetchOzonOrders(
+            const lines = await fetchOzonOrders(
               credentials.ozonClientId,
               credentials.ozonApiKey,
             );
@@ -218,7 +218,7 @@ export async function fetchAndProcessOrders(): Promise<OrdersFetchResponse> {
               status: {
                 status: 'success' as const,
                 positionCount: lines.length,
-                message: formatOzonOrdersStatusMessage(lines.length, mode),
+                message: `получено ${lines.length} поз.`,
               },
             };
           } catch (error) {

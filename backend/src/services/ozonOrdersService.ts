@@ -1,16 +1,5 @@
 import type { RawOrderLine } from '../types';
 import { listOzonFbsPostings } from './ozonPostingFbsListService';
-import {
-  type OzonOrdersCacheMode,
-  readFreshOzonOrdersCache,
-  readStaleOzonOrdersCache,
-  writeOzonOrdersCache,
-} from './ozonOrdersCache';
-
-export type OzonOrdersFetchResult = {
-  lines: RawOrderLine[];
-  mode: OzonOrdersCacheMode;
-};
 
 async function fetchOzonOrdersFromApi(clientId: string, apiKey: string): Promise<RawOrderLine[]> {
   const postings = await listOzonFbsPostings(clientId, apiKey, 'awaiting_packaging');
@@ -40,37 +29,6 @@ async function fetchOzonOrdersFromApi(clientId: string, apiKey: string): Promise
   return lines;
 }
 
-export async function fetchOzonOrders(
-  clientId: string,
-  apiKey: string,
-): Promise<OzonOrdersFetchResult> {
-  const cached = readFreshOzonOrdersCache();
-  if (cached) {
-    return { lines: cached, mode: 'fresh-cache' };
-  }
-
-  try {
-    const lines = await fetchOzonOrdersFromApi(clientId, apiKey);
-    writeOzonOrdersCache(lines);
-    return { lines, mode: 'live' };
-  } catch (error) {
-    const stale = readStaleOzonOrdersCache();
-    if (stale) {
-      return { lines: stale, mode: 'stale-cache' };
-    }
-    throw error;
-  }
-}
-
-export function formatOzonOrdersStatusMessage(
-  lineCount: number,
-  mode: OzonOrdersCacheMode,
-): string {
-  if (mode === 'fresh-cache') {
-    return `из кэша (≤2 мин), ${lineCount} поз.`;
-  }
-  if (mode === 'stale-cache') {
-    return `из кэша (API недоступен), ${lineCount} поз.`;
-  }
-  return `получено ${lineCount} поз.`;
+export async function fetchOzonOrders(clientId: string, apiKey: string): Promise<RawOrderLine[]> {
+  return fetchOzonOrdersFromApi(clientId, apiKey);
 }
