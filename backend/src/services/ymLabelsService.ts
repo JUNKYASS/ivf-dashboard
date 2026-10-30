@@ -26,7 +26,13 @@ import {
   type StickersScope,
 } from './stickersShared';
 import { sortByProductType } from './stickersSortService';
+import {
+  buildYmFbsOrdersListRequestBody,
+  isYmFbsAssemblyEligible,
+} from './ymOrderFilter';
 import { fetchFbsCampaignContext, fetchYmBusinessId, ymHeaders } from './ymApiUtils';
+
+export { isYmFbsAssemblyEligible as isYmStickerEligible } from './ymOrderFilter';
 
 export type YmReportStatus = 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED' | 'NO_DATA' | string;
 
@@ -46,6 +52,8 @@ type YmOrderItem = {
 type YmOrder = {
   orderId?: number;
   campaignId?: number;
+  status?: string;
+  substatus?: string;
   items?: YmOrderItem[];
   delivery?: {
     boxesLayout?: unknown[];
@@ -127,9 +135,11 @@ async function generateYmStickersUnsafe(
   apiToken: string,
   scope: StickersScope,
 ): Promise<YmStickersResult> {
-  const allOrders = await listYmFbsStartedOrders(apiToken);
+  const allOrders = await listYmFbsStickerOrders(apiToken);
   if (allOrders.length === 0) {
-    throw new StickersError('Нет заказов YM в статусе «ожидают сборки»');
+    throw new StickersError(
+      'Нет заказов YM для печати этикеток (PROCESSING/STARTED или PROCESSING/READY_TO_SHIP)',
+    );
   }
 
   pruneMarketplace(
@@ -199,7 +209,7 @@ async function generateYmStickersUnsafe(
   };
 }
 
-async function listYmFbsStartedOrders(apiToken: string): Promise<YmOrderLabel[]> {
+async function listYmFbsStickerOrders(apiToken: string): Promise<YmOrderLabel[]> {
   const { businessId, campaignIds } = await fetchFbsCampaignContext(apiToken);
   const orders: YmOrderLabel[] = [];
   let pageToken: string | undefined;
@@ -207,13 +217,7 @@ async function listYmFbsStartedOrders(apiToken: string): Promise<YmOrderLabel[]>
   do {
     const response = await axios.post<YmOrdersResponse>(
       `${YM_API_BASE_URL}/v1/businesses/${businessId}/orders`,
-      {
-        statuses: ['PROCESSING'],
-        substatuses: ['STARTED'],
-        programTypes: ['FBS'],
-        campaignIds,
-        fake: false,
-      },
+      buildYmFbsOrdersListRequestBody(campaignIds),
       {
         headers: ymHeaders(apiToken),
         params: {
@@ -229,6 +233,7 @@ async function listYmFbsStartedOrders(apiToken: string): Promise<YmOrderLabel[]>
       const orderId = order.orderId;
       const campaignId = order.campaignId;
       if (orderId === undefined || campaignId === undefined) continue;
+      if (!isYmFbsAssemblyEligible(order.status, order.substatus)) continue;
 
       const items = order.items ?? [];
       const primaryArticle = items[0]?.offerId?.trim() ?? '';

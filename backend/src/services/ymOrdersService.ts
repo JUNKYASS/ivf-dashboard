@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { YM_API_BASE_URL } from '../constants';
 import type { RawOrderLine } from '../types';
+import { buildYmFbsOrdersListRequestBody, isYmFbsAssemblyEligible } from './ymOrderFilter';
 import { fetchFbsCampaignContext, ymHeaders } from './ymApiUtils';
 import { lookupYmProductImage } from './ymProductCacheService';
 
@@ -12,6 +13,8 @@ type YmOrderItem = {
 
 type YmOrder = {
   orderId?: number;
+  status?: string;
+  substatus?: string;
   items?: YmOrderItem[];
 };
 
@@ -28,13 +31,7 @@ async function fetchYmOrderPage(
 ): Promise<YmOrdersResponse> {
   const response = await axios.post<YmOrdersResponse>(
     `${YM_API_BASE_URL}/v1/businesses/${businessId}/orders`,
-    {
-      statuses: ['PROCESSING'],
-      substatuses: ['STARTED'],
-      programTypes: ['FBS'],
-      campaignIds,
-      fake: false,
-    },
+    buildYmFbsOrdersListRequestBody(campaignIds),
     {
       headers: ymHeaders(apiToken),
       params: {
@@ -60,6 +57,7 @@ export async function fetchYmOrders(apiToken: string): Promise<RawOrderLine[]> {
     for (const order of orders) {
       const orderId = order.orderId;
       if (orderId === undefined) continue;
+      if (!isYmFbsAssemblyEligible(order.status, order.substatus)) continue;
 
       for (const item of order.items ?? []) {
         const offerId = item.offerId?.trim();

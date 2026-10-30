@@ -70,7 +70,25 @@ function parseErrorBody(data: unknown): string | null {
     return extractMessage(data);
   }
   if (typeof data === 'object' && !ArrayBuffer.isView(data) && !(data instanceof ArrayBuffer)) {
-    const record = data as { message?: unknown; error?: unknown };
+    const record = data as {
+      message?: unknown;
+      error?: unknown;
+      errors?: unknown;
+    };
+    if (Array.isArray(record.errors)) {
+      const parts = record.errors
+        .map((entry) => {
+          if (typeof entry !== 'object' || entry === null) return null;
+          const message = (entry as { message?: unknown }).message;
+          const code = (entry as { code?: unknown }).code;
+          if (typeof message === 'string' && message.trim()) {
+            return typeof code === 'string' ? `${code}: ${message}` : message;
+          }
+          return null;
+        })
+        .filter((part): part is string => Boolean(part));
+      if (parts.length > 0) return parts.join('; ');
+    }
     if (typeof record.message === 'string') return record.message;
     if (typeof record.error === 'string') return record.error;
   }
@@ -96,7 +114,13 @@ function extractMessage(text: string): string | null {
   if (!trimmed) return null;
   if (trimmed.startsWith('{')) {
     try {
-      const json = JSON.parse(trimmed) as { message?: unknown; error?: unknown };
+      const json = JSON.parse(trimmed) as {
+        message?: unknown;
+        error?: unknown;
+        errors?: unknown;
+      };
+      const fromErrors = parseErrorBody(json);
+      if (fromErrors) return fromErrors;
       if (typeof json.message === 'string') return json.message;
       if (typeof json.error === 'string') return json.error;
     } catch {

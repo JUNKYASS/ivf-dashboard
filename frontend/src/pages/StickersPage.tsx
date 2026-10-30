@@ -83,8 +83,8 @@ export function StickersPage() {
         {renderMarketplaceBlock('ym')}
 
         <p className="stickers-hint">
-          Ozon — FBS «Готово к отгрузке». WB — «на сборке». Яндекс Маркет — FBS, статус
-          «ожидают сборки» (PROCESSING/STARTED). Ключи API задаются в{' '}
+          Ozon — FBS «Готово к отгрузке». WB — «на сборке». Яндекс Маркет — FBS:
+          PROCESSING/STARTED и PROCESSING/READY_TO_SHIP (до DELIVERY). Ключи API задаются в{' '}
           <Link to="/settings">Настройках</Link>. Печать 58×40 мм, масштаб 100%, без
           вписывания в страницу. В кабинете Ozon лучше сразу выбрать формат этикетки 58×40.
           Нераспечатанные — этикетки, которые ещё не скачивали из этого приложения; скачивание

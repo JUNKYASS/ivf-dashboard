@@ -1,19 +1,17 @@
 # Tasks
 
 ## Current Task
-- **ID:** `stickers-yandex-market`
+- **ID:** `orders-ym-assembly-filter`
 - **Status:** REFLECT complete
-- **Complexity:** Level 2
+- **Complexity:** Level 1
 
 ## Goal
-Этикетки YM: portrait 40×58 + боковой артикул (multi-SKU).
+YM на `/orders`: тот же срез, что и стикеры (shared `ymOrderFilter`).
 
 ## Checklist
-- [x] `ymLabelsService.ts`
-- [x] YM portrait 40×58, side band, no rotate
-- [x] Multi-article caption (formatArticleCaption)
-- [x] Tests 44/44, build OK
-- [x] Reflection updated
+- [x] `ymOrderFilter.ts` + tests
+- [x] `ymOrdersService` / `ymLabelsService` на shared
+- [x] Reflection: `reflection-orders-ym-assembly-filter.md`
 
 ## Next Step
 → `/archive`
